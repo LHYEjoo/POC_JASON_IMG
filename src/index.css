@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #00ABFE;
+  --color-secondary: #66A3FF;
+  --color-accent: #CC0000;
+  --color-wolf: #D6D6D6;
+  --color-jerboa: #EEEEEE;
+  --color-text: #000000;
+  --radius: 16px;
+  --shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--color-jerboa); color: var(--color-text); font-family: 'Simplistic Sans'; }
+
+/* Browser compatibility fixes */
+/* Fallback for browsers that don't support CSS custom properties */
+body {
+  background: #EEEEEE; /* fallback for --color-jerboa */
+  color: #000000; /* fallback for --color-text */
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Improve touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Browser-specific viewport fixes */
+@supports not (height: 100dvh) {
+  /* Fallback for browsers that don't support dvh */
+  .min-h-dvh {
+    min-height: 100vh;
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  .mobile-message-container {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+  .mobile-message-container {
+    scrollbar-width: thin;
+  }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .mobile-message-container {
+    /* Ensure proper scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Fix iOS Safari bottom bar issues */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Visually hidden but accessible */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+
+/* Focus ring standard */
+.focus-ring { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* Simplistic Sans font (user-provided in /font/Simplistic Sans/) */
+@font-face {
+  font-family: 'Simplistic Sans';
+  src: url('/font/Simplistic Sans/SimplisticSans-Normal.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Simplistic Sans';
+  src: url('/font/Simplistic Sans/SimplisticSans-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Simplistic Sans';
+  src: url('/font/Simplistic Sans/SimplisticSans-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Prefer Simplistic Sans globally */
+/* body already set above to use Simplistic Sans only */
+
