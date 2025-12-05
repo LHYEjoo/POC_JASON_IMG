@@ -71,18 +71,22 @@ function removeTrailingPeriods(text: string): string {
 }
 
 function splitIntoBursts(text: string, maxBursts = 3): string[] {
-  // First remove trailing periods for texting-like behavior
-  const cleanedText = removeTrailingPeriods(text);
-  
-  const sentences = cleanedText
+  // First split into sentences based on punctuation (before removing periods)
+  // This preserves sentence boundaries even after we remove periods
+  const sentences = text
     .replace(/\s+/g, ' ')
-    .split(/(?<=[\.\?\!])\s+/)
-    .map(s => removeTrailingPeriods(s.trim())) // Also clean each sentence
+    .split(/(?<=[\.\?\!])\s+/) // Split on periods, question marks, exclamation marks
+    .map(s => s.trim())
     .filter(Boolean);
-  if (sentences.length <= maxBursts) return sentences;
+  
+  // Now remove trailing periods from each sentence for texting-like behavior
+  const cleanedSentences = sentences.map(s => removeTrailingPeriods(s));
+  
+  if (cleanedSentences.length <= maxBursts) return cleanedSentences;
+  
   // Group sentences evenly into maxBursts chunks
   const groups: string[][] = Array.from({ length: maxBursts }, () => []);
-  sentences.forEach((s, i) => {
+  cleanedSentences.forEach((s, i) => {
     groups[Math.min(i, maxBursts - 1)].push(s);
   });
   return groups.map(g => g.join(' ')).filter(Boolean);
