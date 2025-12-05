@@ -73,23 +73,72 @@ function removeTrailingPeriods(text: string): string {
 function splitIntoBursts(text: string, maxBursts = 3): string[] {
   // First split into sentences based on punctuation (before removing periods)
   // This preserves sentence boundaries even after we remove periods
-  const sentences = text
-    .replace(/\s+/g, ' ')
-    .split(/(?<=[\.\?\!])\s+/) // Split on periods, question marks, exclamation marks
+  const normalizedText = text.replace(/\s+/g, ' ').trim();
+  
+  // eslint-disable-next-line no-console
+  console.log('[splitIntoBursts] Input text:', normalizedText.slice(0, 100));
+  
+  // Split on sentence-ending punctuation followed by space or end of string
+  // Use a simpler regex that works more reliably
+  let sentences = normalizedText
+    .split(/[\.\?\!]+(\s+|$)/) // Split on periods/question marks/exclamation marks (one or more) followed by space or end
     .map(s => s.trim())
-    .filter(Boolean);
+    .filter(s => s.length > 0 && !/^[\.\?\!\s]+$/.test(s)); // Filter out empty or only punctuation
+  
+  // eslint-disable-next-line no-console
+  console.log('[splitIntoBursts] After punctuation split:', sentences.length, 'sentences:', sentences);
+  
+  // If no sentence boundaries found (no periods/question marks/exclamation marks), try other methods
+  if (sentences.length === 1) {
+    const singleSentence = sentences[0];
+    
+    // Try splitting by commas if it's a long sentence
+    if (singleSentence.length > 100) {
+      const commaSplit = singleSentence.split(/,\s+/).map(s => s.trim()).filter(Boolean);
+      if (commaSplit.length > 1) {
+        sentences = commaSplit;
+        // eslint-disable-next-line no-console
+        console.log('[splitIntoBursts] Using comma split:', sentences);
+      } else {
+        // If still one sentence, try splitting by length (roughly equal chunks)
+        const chunkSize = Math.ceil(singleSentence.length / maxBursts);
+        const lengthSplit: string[] = [];
+        for (let i = 0; i < singleSentence.length; i += chunkSize) {
+          const chunk = singleSentence.slice(i, i + chunkSize).trim();
+          if (chunk.length > 0) {
+            lengthSplit.push(chunk);
+          }
+        }
+        if (lengthSplit.length > 1) {
+          sentences = lengthSplit;
+          // eslint-disable-next-line no-console
+          console.log('[splitIntoBursts] Using length-based split:', sentences);
+        }
+      }
+    }
+  }
   
   // Now remove trailing periods from each sentence for texting-like behavior
   const cleanedSentences = sentences.map(s => removeTrailingPeriods(s));
   
-  if (cleanedSentences.length <= maxBursts) return cleanedSentences;
+  // eslint-disable-next-line no-console
+  console.log('[splitIntoBursts] Cleaned sentences:', cleanedSentences);
+  
+  if (cleanedSentences.length <= maxBursts) {
+    // eslint-disable-next-line no-console
+    console.log('[splitIntoBursts] Returning', cleanedSentences.length, 'sentences (<= maxBursts)');
+    return cleanedSentences;
+  }
   
   // Group sentences evenly into maxBursts chunks
   const groups: string[][] = Array.from({ length: maxBursts }, () => []);
   cleanedSentences.forEach((s, i) => {
     groups[Math.min(i, maxBursts - 1)].push(s);
   });
-  return groups.map(g => g.join(' ')).filter(Boolean);
+  const result = groups.map(g => g.join(' ')).filter(Boolean);
+  // eslint-disable-next-line no-console
+  console.log('[splitIntoBursts] Final grouped result:', result);
+  return result;
 }
 
 function formatGroupedCitations(sources: any[], chunks: any[]): string {
@@ -390,11 +439,11 @@ export default function DigitalShadow() {
             // eslint-disable-next-line no-console
             console.log('[RAG] answering with sources; temperature=0');
             let fullText = answer.text || (isSensitive
-              ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden'
-              : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden');
+              ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
+              : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.');
             
-            // Remove trailing periods for texting-like behavior
-            fullText = removeTrailingPeriods(fullText);
+            // Don't remove periods here - let splitIntoBursts handle it after splitting
+            // This preserves sentence boundaries for proper message splitting
             
             // Check if this prompt should have an image
             const imageUrl = getImageForPrompt(text);
