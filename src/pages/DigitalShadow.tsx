@@ -136,6 +136,8 @@ export default function DigitalShadow() {
   const currentSpeechIdRef = React.useRef<string | null>(null);
   // Track pending citations text to append once audio queue finishes
   const pendingCitationsRef = React.useRef<string | null>(null);
+  // Track pending image URL to add final message after image
+  const pendingImageRef = React.useRef<string | null>(null);
 
   // Debug: log message count / ids whenever messages change
   React.useEffect(() => {
@@ -373,6 +375,10 @@ export default function DigitalShadow() {
             if (imageUrl) {
               // eslint-disable-next-line no-console
               console.log('[RAG] Prompt requires image:', imageUrl);
+              // Store image URL to add final message after image
+              pendingImageRef.current = imageUrl;
+            } else {
+              pendingImageRef.current = null;
             }
             
             const bursts = splitIntoBursts(fullText, 3);
@@ -419,14 +425,16 @@ export default function DigitalShadow() {
                   const result = await burstPromises[i];
                   if (result.success && result.chunk && result.audioUrl) {
                     const msgId = crypto.randomUUID();
+                    const isLastBurst = i === burstPromises.length - 1;
+                    // Include imageUrl only for the last burst if it exists
+                    const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
                     // eslint-disable-next-line no-console
-                    console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: (i === 0 && imageUrl) ? imageUrl : undefined });
-                    // Include imageUrl only for the first burst if it exists
+                    console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: burstImageUrl, isLastBurst });
                     audioPlayer.enqueue({ 
                       id: msgId, 
                       text: result.chunk, 
                       url: result.audioUrl,
-                      imageUrl: (i === 0 && imageUrl) ? imageUrl : undefined
+                      imageUrl: burstImageUrl
                     });
                   }
                 } catch (err) {
@@ -497,10 +505,36 @@ export default function DigitalShadow() {
       // This is now called from onAddMessage after a setTimeout
       // So we don't need to do anything here anymore
     },
-    onAudioEnd: (id: string, queueEmpty: boolean) => {
+    onAudioEnd: async (id: string, queueEmpty: boolean) => {
       // eslint-disable-next-line no-console
-      console.log('[AudioPlayer][onAudioEnd]', { id, queueEmpty, hasCitations: !!pendingCitationsRef.current, citationsText: pendingCitationsRef.current?.slice(0, 50) });
+      console.log('[AudioPlayer][onAudioEnd]', { id, queueEmpty, hasCitations: !!pendingCitationsRef.current, hasImage: !!pendingImageRef.current, citationsText: pendingCitationsRef.current?.slice(0, 50) });
       if (queueEmpty) {
+        // If there's a pending image, add the final message "dit is hoe het eruitzag" with TTS
+        if (pendingImageRef.current) {
+          const imageUrl = pendingImageRef.current;
+          pendingImageRef.current = null;
+          const finalText = 'dit is hoe het eruitzag';
+          
+          try {
+            // Generate TTS for the final message
+            const { audioUrl } = await postTTS(finalText);
+            const finalMsgId = crypto.randomUUID();
+            // eslint-disable-next-line no-console
+            console.log('[AudioPlayer] Adding final message after image', { id: finalMsgId, text: finalText, audioUrl });
+            audioPlayer.enqueue({ 
+              id: finalMsgId, 
+              text: finalText, 
+              url: audioUrl 
+            });
+            // Don't return yet - let the audio queue process this, then handle citations
+            return;
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[AudioPlayer] Failed to generate TTS for final message', err);
+            // Continue to citations/end even if TTS fails
+          }
+        }
+        
         // Add citations as the last message (not read aloud)
         if (pendingCitationsRef.current) {
           const citationsText = pendingCitationsRef.current;
