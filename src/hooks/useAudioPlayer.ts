@@ -4,10 +4,11 @@ export interface AudioQueueItem {
   id: string;
   text: string;
   url: string; // mp3/m4a blob URL
+  imageUrl?: string; // Optional image URL for the message
 }
 
 interface AudioPlayerCallbacks {
-  onAddMessage: (id: string, text: string) => void;
+  onAddMessage: (id: string, text: string, imageUrl?: string) => void;
   onAudioStart: (id: string) => void;
   onAudioEnd: (id: string, queueEmpty: boolean) => void;
 }
@@ -90,8 +91,8 @@ export function useAudioPlayer(callbacks: AudioPlayerCallbacks) {
     });
     playingRef.current = true;
 
-    // 1) Tekst ALTIJD direct in UI
-    cb.current.onAddMessage(head.id, head.text);
+    // 1) Tekst ALTIJD direct in UI (with optional image)
+    cb.current.onAddMessage(head.id, head.text, head.imageUrl);
 
     const el = ensureEl();
     el.onplay = () => cb.current.onAudioStart(head.id);

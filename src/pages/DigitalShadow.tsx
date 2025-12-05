@@ -17,6 +17,7 @@ import { postTTS } from '../services/api';
 import { flags } from '../config/flags';
 import { useConversationStorage } from '../hooks/useConversationStorage';
 import { preprompt } from '../config/prompt';
+import { getImageForPrompt } from '../config/promptImages';
 
 const PROJECT_ID = (import.meta as any).env?.VITE_PROJECT_ID || null;
 
@@ -99,7 +100,7 @@ function formatGroupedCitations(sources: any[], chunks: any[]): string {
 }
 
 
-const INITIAL_MESSAGES: Array<{ id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream' }> = [
+const INITIAL_MESSAGES: Array<{ id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }> = [
   {
     id: 'initial-1',
     role: 'ai',
@@ -366,6 +367,14 @@ export default function DigitalShadow() {
             const fullText = answer.text || (isSensitive
               ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
               : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.');
+            
+            // Check if this prompt should have an image
+            const imageUrl = getImageForPrompt(text);
+            if (imageUrl) {
+              // eslint-disable-next-line no-console
+              console.log('[RAG] Prompt requires image:', imageUrl);
+            }
+            
             const bursts = splitIntoBursts(fullText, 3);
             // eslint-disable-next-line no-console
             console.log('[RAG] answer bursts', bursts);
@@ -411,8 +420,14 @@ export default function DigitalShadow() {
                   if (result.success && result.chunk && result.audioUrl) {
                     const msgId = crypto.randomUUID();
                     // eslint-disable-next-line no-console
-                    console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl });
-                    audioPlayer.enqueue({ id: msgId, text: result.chunk, url: result.audioUrl });
+                    console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: (i === 0 && imageUrl) ? imageUrl : undefined });
+                    // Include imageUrl only for the first burst if it exists
+                    audioPlayer.enqueue({ 
+                      id: msgId, 
+                      text: result.chunk, 
+                      url: result.audioUrl,
+                      imageUrl: (i === 0 && imageUrl) ? imageUrl : undefined
+                    });
                   }
                 } catch (err) {
                   // eslint-disable-next-line no-console
@@ -447,13 +462,14 @@ export default function DigitalShadow() {
 
   // Audio player with queue management
   const audioPlayerCallbacks = React.useMemo(() => ({
-    onAddMessage: (id: string, text: string) => {
+    onAddMessage: (id: string, text: string, imageUrl?: string) => {
       const ctxNow = ctxRef.current;
       const existing = ctxNow.messages.find((m) => m.id === id);
       // eslint-disable-next-line no-console
       console.log('[AudioPlayer][onAddMessage]', {
         id,
         text,
+        imageUrl,
         hasExisting: !!existing,
         messageCount: ctxNow.messages.length,
       });
@@ -467,6 +483,7 @@ export default function DigitalShadow() {
           role: 'ai' as const,
           text,
           status: 'final' as const,
+          imageUrl,
         };
         return {
           ...prev,
@@ -703,6 +720,7 @@ export default function DigitalShadow() {
                       showAvatar={m.role === 'ai'}
                       avatarSrc="/img/jason.png"
                       status={m.status}
+                      imageUrl={m.imageUrl}
                     />
                   </div>
                 ))}

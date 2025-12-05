@@ -1,4 +1,4 @@
-export type Msg = { id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream' };
+export type Msg = { id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream'; imageUrl?: string };
 
 export type UIState = 'idle' | 'recording' | 'ai_response_typing' | 'ai_response_playing';
 
@@ -15,7 +15,7 @@ export type Action =
   | { type: 'AI_BUFFER_FLUSH' }
   | { type: 'AI_CHUNK_READY'; text: string }
   | { type: 'AUDIO_ENQUEUE'; payload: AudioQueueItem }
-  | { type: 'ADD_AI_MESSAGE'; id: string; text: string }
+  | { type: 'ADD_AI_MESSAGE'; id: string; text: string; imageUrl?: string }
   | { type: 'AUDIO_START'; id: string }
   | { type: 'AI_DELTA'; text: string }
   | { type: 'AI_FINAL'; id: string; text: string; audioUrl?: string }
@@ -25,7 +25,7 @@ export type Action =
   | { type: 'INACTIVITY_TIMEOUT' };
 
 export interface UIContext {
-  messages: Array<{ id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream' }>;
+  messages: Array<{ id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream'; imageUrl?: string }>;
   composingAI: string;
   audioQueue: AudioQueueItem[];
   ui: UIState;
@@ -159,12 +159,13 @@ export function reducer(state: UIState, ctx: UIContext, action: Action): [UIStat
     }
     
     case 'ADD_AI_MESSAGE': {
-      // ADD_AI_MESSAGE(id, text): Append AI message to chat history
+      // ADD_AI_MESSAGE(id, text, imageUrl?): Append AI message to chat history
       const aiMsg = { 
         id: action.id, 
         role: 'ai' as const, 
         text: action.text, 
-        status: 'final' as const 
+        status: 'final' as const,
+        imageUrl: (action as any).imageUrl
       };
       const next: UIContext = {
         ...ctx,
