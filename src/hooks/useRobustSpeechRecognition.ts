@@ -38,8 +38,8 @@ export function useRobustSpeechRecognition(
   const deliveredFinalRef = React.useRef(false);
   const heardSpeechRef = React.useRef(false);
   const hasPermissionRef = React.useRef(false);
-  const silenceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const speechTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const silenceTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speechTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const isListeningRef = React.useRef(false);
 
   // Check browser support
