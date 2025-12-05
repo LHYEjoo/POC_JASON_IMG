@@ -54,11 +54,24 @@ Vraag: ${question}`;
   ] as Array<{ role: 'system' | 'user'; content: string }>;
 }
 
+// Remove trailing periods from text (like normal texting behavior)
+function removeTrailingPeriods(text: string): string {
+  // Remove periods at the end of sentences, but keep question marks and exclamation marks
+  // Simple approach: remove periods followed by space or at the end of the text
+  return text
+    .replace(/\.(\s+|$)/g, (match, spaceOrEnd) => spaceOrEnd) // Remove period, keep the space or end
+    .replace(/\.+$/g, '') // Remove any remaining trailing periods at the very end
+    .trim();
+}
+
 function splitIntoBursts(text: string, maxBursts = 3): string[] {
-  const sentences = text
+  // First remove trailing periods for texting-like behavior
+  const cleanedText = removeTrailingPeriods(text);
+  
+  const sentences = cleanedText
     .replace(/\s+/g, ' ')
     .split(/(?<=[\.\?\!])\s+/)
-    .map(s => s.trim())
+    .map(s => removeTrailingPeriods(s.trim())) // Also clean each sentence
     .filter(Boolean);
   if (sentences.length <= maxBursts) return sentences;
   // Group sentences evenly into maxBursts chunks
@@ -104,13 +117,13 @@ const INITIAL_MESSAGES: Array<{ id: string; role: 'ai' | 'user'; text: string; s
   {
     id: 'initial-1',
     role: 'ai',
-    text: 'Tijdens de protesten in Hongkong in 2019 stond ik op straat om te vechten voor mijn vrijheid. De politie zag me als een bedreiging en begon actief naar me te zoeken, dus vluchtte ik naar Taiwan.',
+    text: 'Tijdens de protesten in Hongkong in 2019 stond ik op straat om te vechten voor mijn vrijheid De politie zag me als een bedreiging en begon actief naar me te zoeken, dus vluchtte ik naar Taiwan',
     status: 'final',
   },
   {
     id: 'initial-2',
     role: 'ai',
-    text: 'Ik moest alles achterlaten, zelfs de laatste herinneringen aan mijn ouders. Nu probeer ik hier een nieuw leven op te bouwen. Maar zelfs van een afstand voel ik me nooit helemaal veilig.',
+    text: 'Ik moest alles achterlaten, zelfs de laatste herinneringen aan mijn ouders Nu probeer ik hier een nieuw leven op te bouwen Maar zelfs van een afstand voel ik me nooit helemaal veilig',
     status: 'final',
   },
 ];
@@ -144,9 +157,9 @@ export default function DigitalShadow() {
     // eslint-disable-next-line no-console
     console.log('[CTX] messages updated', {
       count: ctx.messages.length,
-      ids: ctx.messages.map((m) => m.id),
-      roles: ctx.messages.map((m) => m.role),
-      texts: ctx.messages.map((m) => m.text),
+      ids: ctx.messages.map((m: { id: string }) => m.id),
+      roles: ctx.messages.map((m: { role: string }) => m.role),
+      texts: ctx.messages.map((m: { text: string }) => m.text),
     });
   }, [ctx.messages.length]);
 
@@ -164,7 +177,7 @@ export default function DigitalShadow() {
 
   // Debounce mechanism to prevent duplicate requests
   const lastRequestRef = React.useRef<string>('');
-  const requestTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const requestTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
   // STT: Robust speech recognition with better handling
@@ -277,7 +290,7 @@ export default function DigitalShadow() {
         // But allow if we're transitioning from recording to typing
         if (currentUI === 'ai_response_typing' || currentUI === 'ai_response_playing') {
           // Check if this is a duplicate request (same text)
-          const lastUserMessage = currentCtx.messages.filter(m => m.role === 'user').pop();
+          const lastUserMessage = currentCtx.messages.filter((m: { role: string }) => m.role === 'user').pop();
           if (lastUserMessage && lastUserMessage.text === text.trim()) {
             // eslint-disable-next-line no-console
             console.log('[DISPATCH] Blocked: Duplicate user message', currentUI);
@@ -342,9 +355,9 @@ export default function DigitalShadow() {
             if (!hasEvidence && flags.STRICT_RAG_ONLY) {
               // eslint-disable-next-line no-console
               console.log('[RAG] gated: insufficient evidence', { topScore, threshold: flags.RAG_MIN_SCORE });
-              const fallback = isSensitive
+              const fallback = removeTrailingPeriods(isSensitive
                 ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
-                : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.';
+                : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.');
               try {
                 // Generate TTS first, then enqueue; text bubble is added when audio starts
                 const { audioUrl } = await postTTS(fallback);
@@ -366,9 +379,12 @@ export default function DigitalShadow() {
             }
             // eslint-disable-next-line no-console
             console.log('[RAG] answering with sources; temperature=0');
-            const fullText = answer.text || (isSensitive
-              ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
-              : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.');
+            let fullText = answer.text || (isSensitive
+              ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden'
+              : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden');
+            
+            // Remove trailing periods for texting-like behavior
+            fullText = removeTrailingPeriods(fullText);
             
             // Check if this prompt should have an image
             const imageUrl = getImageForPrompt(text);
@@ -482,8 +498,8 @@ export default function DigitalShadow() {
         messageCount: ctxNow.messages.length,
       });
       // Append AI message directly using functional state update so multiple bursts all show up
-      setCtx((prev) => {
-        if (prev.messages.some((m) => m.id === id)) {
+      setCtx((prev: UIContext) => {
+        if (prev.messages.some((m: { id: string }) => m.id === id)) {
           return { ...prev, ui: 'ai_response_playing' };
         }
         const aiMsg = {
@@ -557,7 +573,7 @@ export default function DigitalShadow() {
           // Verify the message was added
           setTimeout(() => {
             const currentCtx = ctxRef.current;
-            const addedMessage = currentCtx.messages.find(m => m.id === citationsId);
+            const addedMessage = currentCtx.messages.find((m: { id: string }) => m.id === citationsId);
             // eslint-disable-next-line no-console
             console.log('[AudioPlayer] Citations message added?', { 
               found: !!addedMessage, 
@@ -746,7 +762,7 @@ export default function DigitalShadow() {
               )}
 
               <div className="space-y-4">
-                {ctx.messages.map((m, index) => (
+                {ctx.messages.map((m: { id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }, index: number) => (
                   <div key={m.id} className="message-item" data-index={index}>
                     <ChatBubble
                       type={m.role}
@@ -870,7 +886,7 @@ export default function DigitalShadow() {
 
       {/* Keyboard toggle (rechts-onder) */}
       <div className="fixed bottom-4 right-4 z-20">
-        <KeyboardFAB onClick={() => setShowKeyboard((v) => !v)} />
+        <KeyboardFAB onClick={() => setShowKeyboard((v: boolean) => !v)} />
       </div>
 
 
