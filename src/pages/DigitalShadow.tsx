@@ -8,6 +8,7 @@ import MicFAB from '../components/MicFAB';
 import TextInputFallback from '../components/TextInputFallback';
 import KeyboardFAB from '../components/KeyboardFAB';
 import Toast from '../components/Toast';
+import SettingsModal from '../components/SettingsModal';
 import { brand } from '../config/brand';
 import { reducer, type UIState, type UIContext, type Action } from '../state/machine';
 import { useRobustSpeechRecognition } from '../hooks/useRobustSpeechRecognition';
@@ -226,6 +227,10 @@ export default function DigitalShadow() {
   // ---------- UI bits ----------
   const [toast, setToast] = React.useState<string>('');
   const [showKeyboard, setShowKeyboard] = React.useState<boolean>(false);
+  const [showSettings, setShowSettings] = React.useState<boolean>(false);
+  const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
+  const audioEnabledRef = React.useRef(audioEnabled);
+  audioEnabledRef.current = audioEnabled;
 
   // ---------- Conversation Storage ----------
   const conversationStorage = useConversationStorage(ctx, flags.ENABLE_SUPABASE_STORAGE);
@@ -417,6 +422,28 @@ export default function DigitalShadow() {
               const fallback = removeTrailingPeriods(isSensitive
                 ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                 : 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.');
+              
+              // If audio is disabled, show text with natural typing delay
+              if (!audioEnabledRef.current) {
+                // Show typing indicator
+                dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+                
+                // Calculate typing delay based on text length
+                const typingDelay = Math.min(800 + (fallback.length / 10) * 200, 2500);
+                
+                setTimeout(() => {
+                  const msgId = crypto.randomUUID();
+                  dispatchRef.current?.({ type: 'ADD_AI_MESSAGE', id: msgId, text: fallback });
+                  
+                  // Set UI back to idle after message is shown
+                  setTimeout(() => {
+                    dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                    startIdleTimerRef.current(60000);
+                  }, 500);
+                }, typingDelay);
+                return;
+              }
+              
               try {
                 // Generate TTS first, then enqueue; text bubble is added when audio starts
                 const { audioUrl } = await postTTS(fallback);
@@ -476,6 +503,90 @@ export default function DigitalShadow() {
                 sources: search.sources,
                 hasSources: Array.isArray(search.sources)
               });
+            }
+            
+            // If audio is disabled, show messages without TTS but with natural delays
+            if (!audioEnabledRef.current) {
+              // Calculate typing delay based on text length (simulate human typing speed)
+              // Average typing speed: ~200 characters per minute = ~3.3 chars/sec
+              // Add base delay of 800ms + 200ms per 10 characters
+              const calculateTypingDelay = (text: string): number => {
+                const baseDelay = 800; // Base delay before first message
+                const charDelay = (text.length / 10) * 200; // ~200ms per 10 chars
+                return Math.min(baseDelay + charDelay, 3000); // Cap at 3 seconds
+              };
+              
+              // Capture values before setTimeout closures
+              const hasImage = !!imageUrl;
+              const citationsText = pendingCitationsRef.current;
+              
+              // Show typing indicator
+              dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+              
+              // Add messages with delays to simulate natural texting
+              let cumulativeDelay = calculateTypingDelay(bursts[0] || '');
+              
+              bursts.forEach((chunk, index) => {
+                setTimeout(() => {
+                  const msgId = crypto.randomUUID();
+                  const isLastBurst = index === bursts.length - 1;
+                  const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
+                  dispatchRef.current?.({ 
+                    type: 'ADD_AI_MESSAGE', 
+                    id: msgId, 
+                    text: chunk,
+                    imageUrl: burstImageUrl
+                  });
+                  
+                  // After last burst, add final message and citations
+                  if (isLastBurst) {
+                    // Add final message after image if needed
+                    if (hasImage) {
+                      setTimeout(() => {
+                        const finalText = 'dit is hoe het eruitzag';
+                        const finalMsgId = crypto.randomUUID();
+                        dispatchRef.current?.({ 
+                          type: 'ADD_AI_MESSAGE', 
+                          id: finalMsgId, 
+                          text: finalText 
+                        });
+                      }, 1500); // 1.5 second delay after image
+                    }
+                    
+                    // Add citations if any (after a short delay)
+                    if (citationsText) {
+                      setTimeout(() => {
+                        const citationsId = crypto.randomUUID();
+                        dispatchRef.current?.({
+                          type: 'ADD_AI_MESSAGE',
+                          id: citationsId,
+                          text: citationsText,
+                        });
+                        
+                        // Set UI back to idle after all messages are shown
+                        setTimeout(() => {
+                          dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                          startIdleTimerRef.current(60000);
+                        }, 500);
+                      }, hasImage ? 2000 : 1000);
+                    } else {
+                      // No citations, set UI to idle after a short delay
+                      setTimeout(() => {
+                        dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                        startIdleTimerRef.current(60000);
+                      }, 500);
+                    }
+                  }
+                }, cumulativeDelay);
+                
+                // Calculate delay for next message (1-2 seconds between messages)
+                if (index < bursts.length - 1) {
+                  const nextChunk = bursts[index + 1];
+                  cumulativeDelay += 1000 + (nextChunk.length / 10) * 100; // 1-2 seconds between messages
+                }
+              });
+              
+              return;
             }
             
             // Start TTS generation for all bursts in parallel (low latency)
@@ -770,7 +881,7 @@ export default function DigitalShadow() {
         zIndex: 1
       }}
     >
-      <HeaderBar name="Jason" location="Hong Kong" flag="🇭🇰" onReset={() => dispatchRef.current?.({ type: 'RESET' })} />
+      <HeaderBar name="Jason" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
 
       {/* Chat Messages Container - Flexible height for all messages */}
       <div
@@ -981,6 +1092,22 @@ export default function DigitalShadow() {
       {/* Toasts */}
       <Toast message={toast} />
 
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        audioEnabled={audioEnabled}
+        onAudioToggle={(enabled) => {
+          setAudioEnabled(enabled);
+          // Stop any currently playing audio if disabling
+          if (!enabled) {
+            audioPlayer.stop();
+          }
+        }}
+        onReset={() => {
+          dispatchRef.current?.({ type: 'RESET' });
+        }}
+      />
 
     </div>
   );
