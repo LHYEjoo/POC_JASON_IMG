@@ -3,7 +3,7 @@ import * as React from 'react';
 export default function SuggestedPrompts({ list, onSelect }: { list: string[]; onSelect: (t: string) => void }) {
   return (
     <div className="w-full">
-      <div className="mb-3 font-bold text-center text-xl sm:text-2xl md:text-3xl">Suggestions...</div>
+      <div className="mb-3 font-bold text-center text-xl sm:text-2xl md:text-3xl">Suggesties...</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         {list.map((t) => (
           <button
