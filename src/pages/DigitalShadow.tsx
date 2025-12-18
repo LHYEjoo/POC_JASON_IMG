@@ -655,13 +655,15 @@ export default function DigitalShadow() {
           
           // Check if this is a suggested question with preprompts
           // Find questionId by matching text with suggested questions
+          // Use ref to ensure we have the latest value in setTimeout callback
+          const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
           let questionId: string | undefined;
-          if (suggestedQuestionsWithIds) {
+          if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
             // Try exact match first
-            let matchedQuestion = suggestedQuestionsWithIds.find((q: { id: string; text: string; tags: string[] }) => q.text === text.trim());
+            let matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => q.text === text.trim());
             // If no exact match, try case-insensitive match
             if (!matchedQuestion) {
-              matchedQuestion = suggestedQuestionsWithIds.find((q: { id: string; text: string; tags: string[] }) => 
+              matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
                 q.text.toLowerCase().trim() === text.toLowerCase().trim()
               );
             }
@@ -670,11 +672,11 @@ export default function DigitalShadow() {
             console.log('[RAG] Question matching:', { 
               userText: text.trim(), 
               questionId, 
-              availableQuestions: suggestedQuestionsWithIds.map(q => ({ id: q.id, text: q.text.slice(0, 50) }))
+              availableQuestions: currentSuggestedQuestions.map(q => ({ id: q.id, text: q.text.slice(0, 50) }))
             });
           } else {
             // eslint-disable-next-line no-console
-            console.log('[RAG] No suggestedQuestionsWithIds available');
+            console.log('[RAG] No suggestedQuestionsWithIds available', { hasRef: !!suggestedQuestionsWithIdsRef.current, length: currentSuggestedQuestions?.length });
           }
           
           // Try to get preprompts first
@@ -829,10 +831,7 @@ export default function DigitalShadow() {
             console.log('[RAG] No questionId found, using normal RAG flow');
           }
           
-          if (!suggestedQuestionsWithIds) {
-            // eslint-disable-next-line no-console
-            console.log('[RAG] suggestedQuestionsWithIds not available, using normal RAG flow');
-          }
+          // Note: We already checked currentSuggestedQuestions above, no need to check again
           
           // RAG flow: retrieve → gate on similarity → build prompt (preprompt + sources) → answer → TTS
           // eslint-disable-next-line no-console
@@ -1249,6 +1248,12 @@ export default function DigitalShadow() {
 
   // Dynamische suggestievragen
   const { list: suggestedQuestions, questions: suggestedQuestionsWithIds, next: nextSuggestedQuestions } = useDynamicQuestions(language);
+  
+  // Store in ref so it's available in setTimeout callbacks
+  const suggestedQuestionsWithIdsRef = React.useRef(suggestedQuestionsWithIds);
+  React.useEffect(() => {
+    suggestedQuestionsWithIdsRef.current = suggestedQuestionsWithIds;
+  }, [suggestedQuestionsWithIds]);
 
   // Scroll steeds naar onder bij nieuwe berichten/typindicator
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
