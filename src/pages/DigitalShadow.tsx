@@ -673,20 +673,20 @@ export default function DigitalShadow() {
               const userTextLower = userText.toLowerCase();
               
               // Try exact match first
-            let matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
-              q.text.trim() === userText
-            );
-            
-            // If no exact match, try case-insensitive match
-            if (!matchedQuestion) {
-              matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
-                q.text.toLowerCase().trim() === userTextLower
+              let matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
+                q.text.trim() === userText
               );
-            }
-            
-            // If still no match, try partial match (user text starts with question text or vice versa)
-            if (!matchedQuestion) {
-              matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
+              
+              // If no exact match, try case-insensitive match
+              if (!matchedQuestion) {
+                matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
+                  q.text.toLowerCase().trim() === userTextLower
+                );
+              }
+              
+              // If still no match, try partial match (user text starts with question text or vice versa)
+              if (!matchedQuestion) {
+                matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
                 const qTextLower = q.text.toLowerCase().trim();
                 
                 // Check if question text starts with user text (user typed/spoke beginning of question)
