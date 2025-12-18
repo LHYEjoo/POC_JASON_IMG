@@ -1,16 +1,19 @@
 import * as React from 'react';
 import DisclaimerInline from './DisclaimerInline';
 import { cn } from '../utils/cn';
+import { type Language } from '../config/prompt';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   audioEnabled: boolean;
   onAudioToggle: (enabled: boolean) => void;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
   onReset: () => void;
 }
 
-export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, onReset }: Props) {
+export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset }: Props) {
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   // Close on escape key
@@ -58,7 +61,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, on
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-semibold text-gray-900">Instellingen</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{language === 'nl' ? 'Instellingen' : 'Settings'}</h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -89,7 +92,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, on
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="audio-toggle" className="text-lg font-medium text-gray-900">
-                Audio afspelen
+                {language === 'nl' ? 'Audio afspelen' : 'Play Audio'}
               </label>
               <button
                 type="button"
@@ -99,7 +102,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, on
                   'relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00ABFE] focus:ring-offset-2',
                   audioEnabled ? 'bg-[#00ABFE]' : 'bg-gray-300'
                 )}
-                aria-label={audioEnabled ? 'Audio aan' : 'Audio uit'}
+                aria-label={audioEnabled ? (language === 'nl' ? 'Audio aan' : 'Audio on') : (language === 'nl' ? 'Audio uit' : 'Audio off')}
               >
                 <span
                   className={cn(
@@ -110,9 +113,53 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, on
               </button>
             </div>
             <p className="text-sm text-gray-600">
-              {audioEnabled
-                ? 'Jason spreekt zijn antwoorden uit'
-                : 'Jason spreekt zijn antwoorden niet uit'}
+              {language === 'nl'
+                ? (audioEnabled
+                    ? 'Jason spreekt zijn antwoorden uit'
+                    : 'Jason spreekt zijn antwoorden niet uit')
+                : (audioEnabled
+                    ? 'Jason speaks his answers out loud'
+                    : 'Jason does not speak his answers out loud')}
+            </p>
+          </div>
+
+          {/* Language Toggle */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="language-toggle" className="text-lg font-medium text-gray-900">
+                {language === 'nl' ? 'Taal' : 'Language'}
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('nl')}
+                  className={cn(
+                    'px-4 py-2 rounded-[12px] font-medium transition-colors',
+                    language === 'nl'
+                      ? 'bg-[#00ABFE] text-black'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  )}
+                >
+                  NL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('en')}
+                  className={cn(
+                    'px-4 py-2 rounded-[12px] font-medium transition-colors',
+                    language === 'en'
+                      ? 'bg-[#00ABFE] text-black'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  )}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600">
+              {language === 'nl'
+                ? 'Kies de taal waarin Jason communiceert'
+                : 'Choose the language Jason communicates in'}
             </p>
           </div>
 
@@ -135,7 +182,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, on
             }}
             className="w-full rounded-[16px] px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium shadow-vpro transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            ↻ Reset Gesprek
+            ↻ {language === 'nl' ? 'Reset Gesprek' : 'Reset Conversation'}
           </button>
         </div>
       </div>
