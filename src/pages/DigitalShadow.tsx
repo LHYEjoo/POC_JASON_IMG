@@ -20,6 +20,7 @@ import { useConversationStorage } from '../hooks/useConversationStorage';
 import { getPreprompt, type Language } from '../config/prompt';
 import { getImageForPrompt } from '../config/promptImages';
 import { useDynamicQuestions } from '../hooks/useDynamicQuestions';
+import { getPreprompts, type Language as QuestionLanguage } from '../config/suggestedQuestions';
 
 const PROJECT_ID = (import.meta as any).env?.VITE_PROJECT_ID || null;
 
@@ -652,6 +653,158 @@ export default function DigitalShadow() {
           // eslint-disable-next-line no-console
           console.log('[RAG] Detected question language:', questionLang);
           
+          // Check if this is a suggested question with preprompts
+          // Find questionId by matching text with suggested questions
+          let questionId: string | undefined;
+          if (suggestedQuestionsWithIds) {
+            const matchedQuestion = suggestedQuestionsWithIds.find((q: { id: string; text: string; tags: string[] }) => q.text === text.trim());
+            questionId = matchedQuestion?.id;
+          }
+          
+          // Try to get preprompts first
+          if (questionId) {
+            const preprompts = getPreprompts(questionId, questionLang);
+            if (preprompts && preprompts.bursts.length > 0) {
+              // eslint-disable-next-line no-console
+              console.log('[RAG] Using preprompts for question:', questionId);
+              
+              // Check if audio URLs are available (if not, we'll need to generate them)
+              const hasAudioUrls = preprompts.bursts.every((b) => b.audioUrl);
+              
+              if (hasAudioUrls) {
+                // All audio URLs are available - use preprompts directly!
+                // If audio is disabled, show text with natural typing delay
+                if (!audioEnabledRef.current) {
+                  const hasImage = !!preprompts.imageUrl;
+                  const citationsText = preprompts.citations;
+                  
+                  // Show typing indicator
+                  dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+                  
+                  // Add messages with delays to simulate natural texting
+                  let cumulativeDelay = 800;
+                  
+                  preprompts.bursts.forEach((burst, index) => {
+                    setTimeout(() => {
+                      const msgId = crypto.randomUUID();
+                      const isLastBurst = index === preprompts.bursts.length - 1;
+                      const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                      dispatchRef.current?.({ 
+                        type: 'ADD_AI_MESSAGE', 
+                        id: msgId, 
+                        text: burst.text,
+                        imageUrl: burstImageUrl
+                      });
+                      
+                      // After last burst, add citations if any
+                      if (isLastBurst) {
+                        if (citationsText) {
+                          setTimeout(() => {
+                            const citationsId = crypto.randomUUID();
+                            dispatchRef.current?.({
+                              type: 'ADD_AI_MESSAGE',
+                              id: citationsId,
+                              text: citationsText,
+                            });
+                            
+                            setTimeout(() => {
+                              dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                              startIdleTimerRef.current(60000);
+                            }, 500);
+                          }, hasImage ? 2000 : 1000);
+                        } else {
+                          setTimeout(() => {
+                            dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                            startIdleTimerRef.current(60000);
+                          }, 500);
+                        }
+                      }
+                    }, cumulativeDelay);
+                    
+                    // Calculate delay for next message
+                    if (index < preprompts.bursts.length - 1) {
+                      const nextBurst = preprompts.bursts[index + 1];
+                      cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
+                    }
+                  });
+                  
+                  return; // Skip normal RAG flow
+                }
+                
+                // Audio enabled - enqueue preprompted bursts
+                preprompts.bursts.forEach((burst, index) => {
+                  const msgId = crypto.randomUUID();
+                  const isLastBurst = index === preprompts.bursts.length - 1;
+                  const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                  
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                  
+                  audioPlayer.enqueue({
+                    id: msgId,
+                    text: burst.text,
+                    url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
+                    imageUrl: burstImageUrl
+                  });
+                });
+                
+                // Add citations after audio finishes (handled by audio player callbacks)
+                if (preprompts.citations) {
+                  pendingCitationsRef.current = preprompts.citations;
+                }
+                
+                return; // Skip normal RAG flow
+              } else {
+                // Preprompts exist but audio URLs are missing - generate TTS for bursts
+                // eslint-disable-next-line no-console
+                console.log('[RAG] Preprompts found but audio URLs missing, generating TTS...');
+                
+                const burstPromises = preprompts.bursts.map(async (burst, index) => {
+                  try {
+                    const { audioUrl } = await postTTS(burst.text);
+                    return { success: true, index, chunk: burst.text, audioUrl };
+                  } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('[RAG][TTS] preprompt burst TTS failed', { index, err });
+                    return { success: false, index };
+                  }
+                });
+                
+                // Enqueue bursts sequentially in order
+                (async () => {
+                  for (let i = 0; i < burstPromises.length; i++) {
+                    try {
+                      const result = await burstPromises[i];
+                      if (result.success && result.chunk && result.audioUrl) {
+                        const msgId = crypto.randomUUID();
+                        const isLastBurst = i === preprompts.bursts.length - 1;
+                        const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                        // eslint-disable-next-line no-console
+                        console.log('[RAG][PREPROMPT][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: burstImageUrl });
+                        audioPlayer.enqueue({ 
+                          id: msgId, 
+                          text: result.chunk, 
+                          url: result.audioUrl,
+                          imageUrl: burstImageUrl
+                        });
+                      }
+                    } catch (err) {
+                      // eslint-disable-next-line no-console
+                      console.error('[RAG][PREPROMPT][TTS] Failed to process burst', { index: i, err });
+                    }
+                  }
+                  
+                  // Add citations after audio finishes
+                  if (preprompts.citations) {
+                    pendingCitationsRef.current = preprompts.citations;
+                  }
+                })();
+                
+                return; // Skip normal RAG flow
+              }
+            }
+          }
+          
           // RAG flow: retrieve → gate on similarity → build prompt (preprompt + sources) → answer → TTS
           try {
             const search = await fetchJSON('/api/search', { q: text, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
@@ -1064,7 +1217,7 @@ export default function DigitalShadow() {
   );
 
   // Dynamische suggestievragen
-  const { list: suggestedQuestions, next: nextSuggestedQuestions } = useDynamicQuestions(language);
+  const { list: suggestedQuestions, questions: suggestedQuestionsWithIds, next: nextSuggestedQuestions } = useDynamicQuestions(language);
 
   // Scroll steeds naar onder bij nieuwe berichten/typindicator
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
@@ -1283,7 +1436,8 @@ export default function DigitalShadow() {
             <div className="w-full max-w-3xl">
               <SuggestedPrompts
                 list={suggestedQuestions}
-                onSelect={(t) => {
+                questions={suggestedQuestionsWithIds}
+                onSelect={(t, questionId) => {
                   // Stuur de gekozen vraag naar Jason
                   dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
                   // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)

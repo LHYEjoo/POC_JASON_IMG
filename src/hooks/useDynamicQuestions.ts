@@ -110,6 +110,7 @@ export function useDynamicQuestions(lang: Language) {
 
   return {
     list: state.current.map((q) => q.text),
+    questions: state.current, // Also return full question objects with id
     next,
   };
 }
