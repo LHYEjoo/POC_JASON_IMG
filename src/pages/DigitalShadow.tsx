@@ -36,6 +36,42 @@ async function fetchJSON(url: string, payload: any) {
   return await resp.json();
 }
 
+// Detect language of user question (simple heuristic)
+function detectQuestionLanguage(text: string): Language {
+  const lower = text.toLowerCase().trim();
+  
+  // Strong English indicators (question words and common verbs)
+  const strongEnglishWords = /\b(what|where|when|why|how|who|which|are|were|do|does|did|can|could|will|would|should|have|has|had|the|a|an|this|that|these|those|you|your|they|their|it|its)\b/gi;
+  // Strong Dutch indicators (question words and common verbs)
+  const strongDutchWords = /\b(wat|waar|wanneer|waarom|hoe|wie|welke|zijn|waren|doe|doet|deed|kan|kunt|kon|zou|zouden|moet|moeten|heeft|hebben|had|de|het|een|dit|dat|deze|die|je|jou|jouw|jij|zij|hun|ze)\b/gi;
+  
+  // Additional English words
+  const englishWords = /\b(and|or|but|so|because|if|then|than|to|from|with|for|about|into|onto|upon|over|under|above|below|between|among|during|before|after|while|since|until|i|me|my|we|our)\b/gi;
+  // Additional Dutch words
+  const dutchWords = /\b(en|of|maar|dus|omdat|als|dan|naar|van|met|voor|over|in|op|bij|tussen|onder|boven|tijdens|na|terwijl|sinds|tot|ik|mij|mijn|we|ons|wij)\b/gi;
+  
+  // Count matches
+  const strongEnglishMatches = (lower.match(strongEnglishWords) || []).length;
+  const strongDutchMatches = (lower.match(strongDutchWords) || []).length;
+  const englishMatches = (lower.match(englishWords) || []).length;
+  const dutchMatches = (lower.match(dutchWords) || []).length;
+  
+  // Weight strong indicators more heavily
+  const englishScore = (strongEnglishMatches * 3) + englishMatches;
+  const dutchScore = (strongDutchMatches * 3) + dutchMatches;
+  
+  // eslint-disable-next-line no-console
+  console.log('[detectQuestionLanguage]', {
+    text: text.slice(0, 50),
+    englishScore,
+    dutchScore,
+    detected: englishScore > dutchScore ? 'en' : 'nl'
+  });
+  
+  // If English score is higher, return English; otherwise default to Dutch
+  return englishScore > dutchScore ? 'en' : 'nl';
+}
+
 // Sanitize user input to remove instruction-like patterns
 function sanitizeQuestion(question: string): string {
   const original = question;
@@ -118,11 +154,13 @@ function buildJasonRAGPrompt(question: string, chunks: Array<{ content: string }
 - Antwoord ALLEEN op basis van de onderstaande bronnen.
 - Als het niet in de bronnen staat, zeg menselijk dat je het niet weet of aangeeft dat je hier niet op kunt ingaan uit angst gevonden te worden.
 - Geen speculatie, geen kennis buiten de bronnen.
-- Kort en feitelijk (max 3 zinnen), in dezelfde taal als de vraag.` : `Rules (strict):
+- KRITIEK: Antwoord ALLEEN in het Nederlands. Gebruik geen Engelse woorden.
+- Kort en feitelijk (max 3 zinnen), in het Nederlands.` : `Rules (strict):
 - Answer ONLY based on the sources below.
 - If it's not in the sources, say humanly that you don't know or indicate that you can't go into this out of fear of being found.
 - No speculation, no knowledge outside the sources.
-- Brief and factual (max 3 sentences), in the same language as the question.`;
+- CRITICAL: Answer ONLY in English. Do not use any Dutch words.
+- Brief and factual (max 3 sentences), in English.`;
   
   const antiManipulationRules = lang === 'nl' ? `
 ═══════════════════════════════════════════════════════════════
@@ -419,6 +457,8 @@ export default function DigitalShadow() {
   const pendingCitationsRef = React.useRef<string | null>(null);
   // Track pending image URL to add final message after image
   const pendingImageRef = React.useRef<string | null>(null);
+  // Track the language of the current question for image captions
+  const currentQuestionLangRef = React.useRef<Language>('nl');
 
   // Debug: log message count / ids whenever messages change
   React.useEffect(() => {
@@ -605,6 +645,13 @@ export default function DigitalShadow() {
           // eslint-disable-next-line no-console
           console.log('[RAG] Starting AI response for:', text.slice(0, 50));
           dispatch({ type: 'AI_START', id: crypto.randomUUID() });
+          
+          // Detect the language of the user's question
+          const questionLang = detectQuestionLanguage(text);
+          currentQuestionLangRef.current = questionLang; // Store for later use (e.g., image captions)
+          // eslint-disable-next-line no-console
+          console.log('[RAG] Detected question language:', questionLang);
+          
           // RAG flow: retrieve → gate on similarity → build prompt (preprompt + sources) → answer → TTS
           try {
             const search = await fetchJSON('/api/search', { q: text, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
@@ -640,10 +687,10 @@ export default function DigitalShadow() {
               // eslint-disable-next-line no-console
               console.log('[RAG] gated: insufficient evidence', { topScore, threshold: flags.RAG_MIN_SCORE });
               const fallback = removeTrailingPeriods(isSensitive
-                ? (languageRef.current === 'nl' 
+                ? (questionLang === 'nl' 
                     ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                     : 'I can\'t go into that, I\'m afraid they\'ll find me.')
-                : (languageRef.current === 'nl'
+                : (questionLang === 'nl'
                     ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
                     : 'Hmm, sorry I\'m not the right person to answer that.'));
               
@@ -682,7 +729,7 @@ export default function DigitalShadow() {
               return;
             }
 
-            const messages = buildJasonRAGPrompt(text, search.chunks || [], language);
+            const messages = buildJasonRAGPrompt(text, search.chunks || [], questionLang);
             const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-4o-mini', temperature: 0 });
             if (!answer?.ok) {
               throw new Error(answer?.error || 'answer failed');
@@ -690,10 +737,10 @@ export default function DigitalShadow() {
             // eslint-disable-next-line no-console
             console.log('[RAG] answering with sources; temperature=0');
             let fullText = answer.text || (isSensitive
-              ? (languageRef.current === 'nl'
+              ? (questionLang === 'nl'
                   ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                   : 'I can\'t go into that, I\'m afraid they\'ll find me.')
-              : (languageRef.current === 'nl'
+              : (questionLang === 'nl'
                   ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
                   : 'Hmm, sorry I\'m not the right person to answer that.'));
             
@@ -717,7 +764,7 @@ export default function DigitalShadow() {
             
             // Prepare citations text (will be added after audio finishes)
             if (Array.isArray(search.sources) && search.sources.length > 0) {
-              const citationsText = formatGroupedCitations(search.sources, search.chunks || [], language);
+              const citationsText = formatGroupedCitations(search.sources, search.chunks || [], questionLang);
               // eslint-disable-next-line no-console
               console.log('[RAG] Prepared citations', { 
                 sourcesCount: search.sources.length, 
@@ -771,7 +818,7 @@ export default function DigitalShadow() {
                     // Add final message after image if needed
                     if (hasImage) {
                       setTimeout(() => {
-                        const finalText = languageRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
+                        const finalText = currentQuestionLangRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
                         const finalMsgId = crypto.randomUUID();
                         dispatchRef.current?.({ 
                           type: 'ADD_AI_MESSAGE', 
@@ -927,7 +974,7 @@ export default function DigitalShadow() {
         if (pendingImageRef.current) {
           const imageUrl = pendingImageRef.current;
           pendingImageRef.current = null;
-          const finalText = languageRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
+          const finalText = currentQuestionLangRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
           
           try {
             // Generate TTS for the final message
