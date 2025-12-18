@@ -19,6 +19,7 @@ import { flags } from '../config/flags';
 import { useConversationStorage } from '../hooks/useConversationStorage';
 import { preprompt } from '../config/prompt';
 import { getImageForPrompt } from '../config/promptImages';
+import { useDynamicQuestions } from '../hooks/useDynamicQuestions';
 
 const PROJECT_ID = (import.meta as any).env?.VITE_PROJECT_ID || null;
 
@@ -897,6 +898,9 @@ export default function DigitalShadow() {
     dispatchRef.current?.({ type: 'INACTIVITY_TIMEOUT' })
   );
 
+  // Dynamische suggestievragen
+  const { list: suggestedQuestions, next: nextSuggestedQuestions } = useDynamicQuestions();
+
   // Scroll steeds naar onder bij nieuwe berichten/typindicator
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
   React.useEffect(() => {
@@ -1113,12 +1117,13 @@ export default function DigitalShadow() {
           <div className="flex justify-center">
             <div className="w-full max-w-3xl">
               <SuggestedPrompts
-                list={[
-                  "Wat was de grootste risico die je nam tijdens de protesten en de gevolgen ervan? Hoe ben je ermee omgegaan?",
-                  "Wat betekent veiligheid voor jou vandaag, en hoe verschilt het van vroeger?",                 
-                  "Was het de moeite waard om te protesteren, ook al betekende dit dat je je eigen land moest verlaten?",
-                ]}
-                onSelect={(t) => dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t })}
+                list={suggestedQuestions}
+                onSelect={(t) => {
+                  // Stuur de gekozen vraag naar Jason
+                  dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
+                  // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)
+                  nextSuggestedQuestions(t);
+                }}
               />
             </div>
           </div>
