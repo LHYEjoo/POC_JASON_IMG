@@ -15,7 +15,7 @@ export type SuggestedQuestion = {
   id: string;
   text: Record<Language, string>;
   tags: string[];
-  preprompts?: Record<Language, Preprompts>; // Pre-generated answers with bursts
+  preprompts?: Partial<Record<Language, Preprompts>>; // Pre-generated answers with bursts (optional per language)
 };
 
 const QUESTION_POOL_RAW: SuggestedQuestion[] = [

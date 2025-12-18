@@ -48,18 +48,26 @@ function getContextTags(context: string | undefined, lang: Language): Set<string
 export function useDynamicQuestions(lang: Language) {
   const [state, setState] = React.useState<QuestionState>(() => {
     const pool = getQuestionPool(lang);
+    // eslint-disable-next-line no-console
+    console.log('[useDynamicQuestions] Pool loaded:', pool.length, 'questions', pool.map(q => q.id));
     const shuffled = shuffle(pool);
     const current = shuffled.slice(0, SUGGESTIONS_PER_VIEW);
     const remaining = shuffled.slice(SUGGESTIONS_PER_VIEW);
+    // eslint-disable-next-line no-console
+    console.log('[useDynamicQuestions] Current questions:', current.map(q => q.id));
     return { current, remaining };
   });
 
   // Reset state when language changes
   React.useEffect(() => {
     const pool = getQuestionPool(lang);
+    // eslint-disable-next-line no-console
+    console.log('[useDynamicQuestions] Language changed, pool reloaded:', pool.length, 'questions', pool.map(q => q.id));
     const shuffled = shuffle(pool);
     const current = shuffled.slice(0, SUGGESTIONS_PER_VIEW);
     const remaining = shuffled.slice(SUGGESTIONS_PER_VIEW);
+    // eslint-disable-next-line no-console
+    console.log('[useDynamicQuestions] New current questions:', current.map(q => q.id));
     setState({ current, remaining });
   }, [lang]);
 
