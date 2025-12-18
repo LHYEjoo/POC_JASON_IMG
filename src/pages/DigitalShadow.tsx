@@ -819,15 +819,17 @@ export default function DigitalShadow() {
                 })();
                 
                 return; // Skip normal RAG flow
-              } else {
-                // eslint-disable-next-line no-console
-                console.log('[RAG] Preprompts not found for questionId:', questionId, 'or no bursts');
               }
             } else {
               // eslint-disable-next-line no-console
-              console.log('[RAG] No questionId found, using normal RAG flow');
+              console.log('[RAG] Preprompts not found for questionId:', questionId, 'or no bursts');
             }
           } else {
+            // eslint-disable-next-line no-console
+            console.log('[RAG] No questionId found, using normal RAG flow');
+          }
+          
+          if (!suggestedQuestionsWithIds) {
             // eslint-disable-next-line no-console
             console.log('[RAG] suggestedQuestionsWithIds not available, using normal RAG flow');
           }
