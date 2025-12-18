@@ -460,6 +460,8 @@ export default function DigitalShadow() {
   const pendingImageRef = React.useRef<string | null>(null);
   // Track the language of the current question for image captions
   const currentQuestionLangRef = React.useRef<Language>('nl');
+  // Track the questionId when a suggested question is clicked
+  const currentQuestionIdRef = React.useRef<string | undefined>(undefined);
 
   // Debug: log message count / ids whenever messages change
   React.useEffect(() => {
@@ -654,15 +656,23 @@ export default function DigitalShadow() {
           console.log('[RAG] Detected question language:', questionLang);
           
           // Check if this is a suggested question with preprompts
-          // Find questionId by matching text with suggested questions
-          // Use ref to ensure we have the latest value in setTimeout callback
-          const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
-          let questionId: string | undefined;
-          if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
-            const userText = text.trim();
-            const userTextLower = userText.toLowerCase();
-            
-            // Try exact match first
+          // First check if we have a questionId from clicking a suggested question
+          let questionId: string | undefined = currentQuestionIdRef.current;
+          
+          // Clear the ref after using it
+          if (questionId) {
+            currentQuestionIdRef.current = undefined;
+            // eslint-disable-next-line no-console
+            console.log('[RAG] Using questionId from suggested question click:', questionId);
+          } else {
+            // Fallback: Find questionId by matching text with suggested questions
+            // Use ref to ensure we have the latest value in setTimeout callback
+            const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
+            if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
+              const userText = text.trim();
+              const userTextLower = userText.toLowerCase();
+              
+              // Try exact match first
             let matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
               q.text.trim() === userText
             );
@@ -679,47 +689,82 @@ export default function DigitalShadow() {
               matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
                 const qTextLower = q.text.toLowerCase().trim();
                 
-                // Check if user text starts with question text (user typed beginning of question)
-                if (qTextLower.startsWith(userTextLower) && userTextLower.length >= 30) {
+                // Check if question text starts with user text (user typed/spoke beginning of question)
+                // This is the most common case: user says first part of question
+                if (qTextLower.startsWith(userTextLower) && userTextLower.length >= 20) {
                   return true;
                 }
                 
-                // Check if question text starts with user text (user typed beginning of question)
-                if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 30) {
+                // Check if user text starts with question text (less common but possible)
+                if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 20) {
                   return true;
                 }
                 
-                // Check if user text is contained in question text (at least 30 chars for reliability)
-                if (userTextLower.length >= 30 && qTextLower.includes(userTextLower)) {
+                // Check if user text is contained in question text (at least 20 chars for reliability)
+                if (userTextLower.length >= 20 && qTextLower.includes(userTextLower)) {
                   return true;
                 }
                 
-                // Check if question text is contained in user text (at least 30 chars)
-                if (qTextLower.length >= 30 && userTextLower.includes(qTextLower)) {
+                // Check if question text is contained in user text (at least 20 chars)
+                if (qTextLower.length >= 20 && userTextLower.includes(qTextLower)) {
                   return true;
+                }
+                
+                // Special case: check if first 50 chars match (for speech recognition truncation/variations)
+                // This handles cases where user says "bes" instead of "beschermen" etc.
+                const userFirst50 = userTextLower.substring(0, 50);
+                const qFirst50 = qTextLower.substring(0, 50);
+                if (userFirst50.length >= 30) {
+                  // Check if question starts with user's first 50 chars
+                  if (qTextLower.startsWith(userFirst50)) {
+                    return true;
+                  }
+                  // Check if user starts with question's first 50 chars
+                  if (userTextLower.startsWith(qFirst50)) {
+                    return true;
+                  }
+                  // Check similarity of first 50 chars (at least 80% match)
+                  let matchingChars = 0;
+                  const minLen = Math.min(userFirst50.length, qFirst50.length);
+                  for (let i = 0; i < minLen; i++) {
+                    if (userFirst50[i] === qFirst50[i]) matchingChars++;
+                  }
+                  const similarity = matchingChars / minLen;
+                  if (similarity >= 0.8 && minLen >= 30) {
+                    return true;
+                  }
                 }
                 
                 return false;
               });
+              
+              questionId = matchedQuestion?.id;
+              // eslint-disable-next-line no-console
+              console.log('[RAG] Question matching (text-based):', { 
+                userText: text.trim(), 
+                userTextLength: text.trim().length,
+                questionId, 
+                availableQuestions: currentSuggestedQuestions.map(q => {
+                  const qText = q.text.trim();
+                  const qTextLower = qText.toLowerCase();
+                  const userTextLower = text.trim().toLowerCase();
+                  return {
+                    id: q.id, 
+                    text: qText.slice(0, 50),
+                    textLength: qText.length,
+                    exactMatch: qText === text.trim(),
+                    caseInsensitiveMatch: qTextLower === userTextLower,
+                    questionStartsWithUser: qTextLower.startsWith(userTextLower),
+                    userStartsWithQuestion: userTextLower.startsWith(qTextLower),
+                    questionContainsUser: qTextLower.includes(userTextLower),
+                    userContainsQuestion: userTextLower.includes(qTextLower)
+                  };
+                })
+              });
+            } else {
+              // eslint-disable-next-line no-console
+              console.log('[RAG] No suggestedQuestionsWithIds available for text matching', { hasRef: !!suggestedQuestionsWithIdsRef.current, length: currentSuggestedQuestions?.length });
             }
-            
-            questionId = matchedQuestion?.id;
-            // eslint-disable-next-line no-console
-            console.log('[RAG] Question matching:', { 
-              userText: text.trim(), 
-              userTextLength: text.trim().length,
-              questionId, 
-              availableQuestions: currentSuggestedQuestions.map(q => ({ 
-                id: q.id, 
-                text: q.text.slice(0, 50),
-                textLength: q.text.length,
-                exactMatch: q.text === text.trim(),
-                caseInsensitiveMatch: q.text.toLowerCase().trim() === text.toLowerCase().trim()
-              }))
-            });
-          } else {
-            // eslint-disable-next-line no-console
-            console.log('[RAG] No suggestedQuestionsWithIds available', { hasRef: !!suggestedQuestionsWithIdsRef.current, length: currentSuggestedQuestions?.length });
           }
           
           // Try to get preprompts first
@@ -1517,6 +1562,8 @@ export default function DigitalShadow() {
                 list={suggestedQuestions}
                 questions={suggestedQuestionsWithIds}
                 onSelect={(t, questionId) => {
+                  // Store questionId for preprompts lookup
+                  currentQuestionIdRef.current = questionId;
                   // Stuur de gekozen vraag naar Jason
                   dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
                   // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)
