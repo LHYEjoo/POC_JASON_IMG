@@ -657,13 +657,31 @@ export default function DigitalShadow() {
           // Find questionId by matching text with suggested questions
           let questionId: string | undefined;
           if (suggestedQuestionsWithIds) {
-            const matchedQuestion = suggestedQuestionsWithIds.find((q: { id: string; text: string; tags: string[] }) => q.text === text.trim());
+            // Try exact match first
+            let matchedQuestion = suggestedQuestionsWithIds.find((q: { id: string; text: string; tags: string[] }) => q.text === text.trim());
+            // If no exact match, try case-insensitive match
+            if (!matchedQuestion) {
+              matchedQuestion = suggestedQuestionsWithIds.find((q: { id: string; text: string; tags: string[] }) => 
+                q.text.toLowerCase().trim() === text.toLowerCase().trim()
+              );
+            }
             questionId = matchedQuestion?.id;
+            // eslint-disable-next-line no-console
+            console.log('[RAG] Question matching:', { 
+              userText: text.trim(), 
+              questionId, 
+              availableQuestions: suggestedQuestionsWithIds.map(q => ({ id: q.id, text: q.text.slice(0, 50) }))
+            });
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('[RAG] No suggestedQuestionsWithIds available');
           }
           
           // Try to get preprompts first
           if (questionId) {
             const preprompts = getPreprompts(questionId, questionLang);
+            // eslint-disable-next-line no-console
+            console.log('[RAG] Preprompts lookup:', { questionId, questionLang, found: !!preprompts, burstsCount: preprompts?.bursts.length });
             if (preprompts && preprompts.bursts.length > 0) {
               // eslint-disable-next-line no-console
               console.log('[RAG] Using preprompts for question:', questionId);
@@ -801,11 +819,22 @@ export default function DigitalShadow() {
                 })();
                 
                 return; // Skip normal RAG flow
+              } else {
+                // eslint-disable-next-line no-console
+                console.log('[RAG] Preprompts not found for questionId:', questionId, 'or no bursts');
               }
+            } else {
+              // eslint-disable-next-line no-console
+              console.log('[RAG] No questionId found, using normal RAG flow');
             }
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('[RAG] suggestedQuestionsWithIds not available, using normal RAG flow');
           }
           
           // RAG flow: retrieve → gate on similarity → build prompt (preprompt + sources) → answer → TTS
+          // eslint-disable-next-line no-console
+          console.log('[RAG] Starting normal RAG flow (no preprompts found)');
           try {
             const search = await fetchJSON('/api/search', { q: text, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
             if (!search?.ok) {
