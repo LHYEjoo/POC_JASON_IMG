@@ -659,20 +659,63 @@ export default function DigitalShadow() {
           const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
           let questionId: string | undefined;
           if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
+            const userText = text.trim();
+            const userTextLower = userText.toLowerCase();
+            
             // Try exact match first
-            let matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => q.text === text.trim());
+            let matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
+              q.text.trim() === userText
+            );
+            
             // If no exact match, try case-insensitive match
             if (!matchedQuestion) {
               matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => 
-                q.text.toLowerCase().trim() === text.toLowerCase().trim()
+                q.text.toLowerCase().trim() === userTextLower
               );
             }
+            
+            // If still no match, try partial match (user text starts with question text or vice versa)
+            if (!matchedQuestion) {
+              matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
+                const qTextLower = q.text.toLowerCase().trim();
+                
+                // Check if user text starts with question text (user typed beginning of question)
+                if (qTextLower.startsWith(userTextLower) && userTextLower.length >= 30) {
+                  return true;
+                }
+                
+                // Check if question text starts with user text (user typed beginning of question)
+                if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 30) {
+                  return true;
+                }
+                
+                // Check if user text is contained in question text (at least 30 chars for reliability)
+                if (userTextLower.length >= 30 && qTextLower.includes(userTextLower)) {
+                  return true;
+                }
+                
+                // Check if question text is contained in user text (at least 30 chars)
+                if (qTextLower.length >= 30 && userTextLower.includes(qTextLower)) {
+                  return true;
+                }
+                
+                return false;
+              });
+            }
+            
             questionId = matchedQuestion?.id;
             // eslint-disable-next-line no-console
             console.log('[RAG] Question matching:', { 
               userText: text.trim(), 
+              userTextLength: text.trim().length,
               questionId, 
-              availableQuestions: currentSuggestedQuestions.map(q => ({ id: q.id, text: q.text.slice(0, 50) }))
+              availableQuestions: currentSuggestedQuestions.map(q => ({ 
+                id: q.id, 
+                text: q.text.slice(0, 50),
+                textLength: q.text.length,
+                exactMatch: q.text === text.trim(),
+                caseInsensitiveMatch: q.text.toLowerCase().trim() === text.toLowerCase().trim()
+              }))
             });
           } else {
             // eslint-disable-next-line no-console
