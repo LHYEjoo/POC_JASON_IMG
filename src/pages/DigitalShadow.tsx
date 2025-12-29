@@ -769,7 +769,14 @@ export default function DigitalShadow() {
           
           // Try to get preprompts first
           if (questionId) {
-            const preprompts = getPreprompts(questionId, questionLang);
+            let preprompts = getPreprompts(questionId, questionLang);
+            // If preprompts not found for detected language, try the other language as fallback
+            if (!preprompts || preprompts.bursts.length === 0) {
+              const fallbackLang: QuestionLanguage = questionLang === 'nl' ? 'en' : 'nl';
+              preprompts = getPreprompts(questionId, fallbackLang);
+              // eslint-disable-next-line no-console
+              console.log('[RAG] Preprompts not found for', questionLang, ', trying fallback language:', fallbackLang, 'found:', !!preprompts);
+            }
             // eslint-disable-next-line no-console
             console.log('[RAG] Preprompts lookup:', { questionId, questionLang, found: !!preprompts, burstsCount: preprompts?.bursts.length });
             if (preprompts && preprompts.bursts.length > 0) {
@@ -912,7 +919,9 @@ export default function DigitalShadow() {
               }
             } else {
               // eslint-disable-next-line no-console
-              console.log('[RAG] Preprompts not found for questionId:', questionId, 'or no bursts');
+              console.log('[RAG] Preprompts not found for questionId:', questionId, 'language:', questionLang, 'or no bursts');
+              // If questionId exists but preprompts don't exist for this language, fall through to generate
+              // This allows generation when preprompts aren't available for the detected language
             }
           } else {
             // eslint-disable-next-line no-console
@@ -922,8 +931,9 @@ export default function DigitalShadow() {
           // Note: We already checked currentSuggestedQuestions above, no need to check again
           
           // RAG flow: retrieve → gate on similarity → build prompt (preprompt + sources) → answer → TTS
+          // Only generate if preprompts were not found or questionId was not found
           // eslint-disable-next-line no-console
-          console.log('[RAG] Starting normal RAG flow (no preprompts found)');
+          console.log('[RAG] Starting normal RAG flow (no preprompts found or questionId not matched)');
           try {
             const search = await fetchJSON('/api/search', { q: text, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
             if (!search?.ok) {
