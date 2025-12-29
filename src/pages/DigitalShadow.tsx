@@ -1176,7 +1176,7 @@ export default function DigitalShadow() {
               }
             })();
           } catch (e: any) {
-            setToast(language === 'nl' ? 'Netwerkfout' : 'Network error');
+            setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
         }, 0);
         break;

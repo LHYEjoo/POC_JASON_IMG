@@ -49,3 +49,4 @@ create policy "Allow all operations on preprompts"
   on suggested_questions_preprompts
   for all using (true);
 
+
