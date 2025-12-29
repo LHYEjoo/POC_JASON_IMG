@@ -1175,6 +1175,7 @@ export default function DigitalShadow() {
                 }
               }
             })();
+            // IIFE completed
           } catch (e: any) {
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
