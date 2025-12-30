@@ -694,23 +694,34 @@ export default function DigitalShadow() {
                 
                 // Check if question text starts with user text (user typed/spoke beginning of question)
                 // This is the most common case: user says first part of question
-                if (qTextLower.startsWith(userTextLower) && userTextLower.length >= 20) {
+                // Lowered threshold to 15 chars to catch more matches
+                if (qTextLower.startsWith(userTextLower) && userTextLower.length >= 15) {
                   return true;
                 }
                 
                 // Check if user text starts with question text (less common but possible)
-                if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 20) {
+                if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 15) {
                   return true;
                 }
                 
-                // Check if user text is contained in question text (at least 20 chars for reliability)
-                if (userTextLower.length >= 20 && qTextLower.includes(userTextLower)) {
+                // Check if user text is contained in question text (at least 15 chars for reliability)
+                // This catches truncated speech input
+                if (userTextLower.length >= 15 && qTextLower.includes(userTextLower)) {
                   return true;
                 }
                 
-                // Check if question text is contained in user text (at least 20 chars)
-                if (qTextLower.length >= 20 && userTextLower.includes(qTextLower)) {
+                // Check if question text is contained in user text (at least 15 chars)
+                if (qTextLower.length >= 15 && userTextLower.includes(qTextLower)) {
                   return true;
+                }
+                
+                // Check if first part of question matches (for speech recognition truncation)
+                // Match first 30+ chars of question with user text
+                if (userTextLower.length >= 15) {
+                  const questionStart = qTextLower.substring(0, Math.min(qTextLower.length, userTextLower.length + 10));
+                  if (questionStart.includes(userTextLower) || userTextLower.includes(questionStart.substring(0, userTextLower.length))) {
+                    return true;
+                  }
                 }
                 
                 // Special case: check if first 50 chars match (for speech recognition truncation/variations)
@@ -742,6 +753,43 @@ export default function DigitalShadow() {
               });
               
               questionId = matchedQuestion?.id;
+              
+              // If still no match, try more aggressive matching for truncated speech input
+              if (!questionId && userTextLower.length >= 15) {
+                // eslint-disable-next-line no-console
+                console.log('[RAG] First match attempt failed, trying aggressive matching for truncated input...');
+                matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
+                  const qTextLower = q.text.toLowerCase().trim();
+                  const qFirst40 = qTextLower.substring(0, 40);
+                  const userFirst40 = userTextLower.substring(0, Math.min(40, userTextLower.length));
+                  
+                  // Check if first parts match significantly
+                  if (qFirst40.includes(userTextLower) || userTextLower.includes(qFirst40)) {
+                    return true;
+                  }
+                  
+                  // Check character-by-character similarity of first 30 chars
+                  const compareLen = Math.min(30, Math.min(qFirst40.length, userFirst40.length));
+                  if (compareLen >= 15) {
+                    let matches = 0;
+                    for (let i = 0; i < compareLen; i++) {
+                      if (qFirst40[i] === userFirst40[i]) matches++;
+                    }
+                    const similarity = matches / compareLen;
+                    if (similarity >= 0.75) { // 75% match
+                      return true;
+                    }
+                  }
+                  
+                  return false;
+                });
+                questionId = matchedQuestion?.id;
+                if (questionId) {
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG] Found questionId via aggressive matching:', questionId);
+                }
+              }
+              
               // eslint-disable-next-line no-console
               console.log('[RAG] Question matching (text-based):', { 
                 userText: text.trim(), 
@@ -771,6 +819,8 @@ export default function DigitalShadow() {
           }
           
           // Try to get preprompts first
+          let prepromptsUsed = false; // Flag to track if we used preprompts
+          
           if (questionId) {
             // eslint-disable-next-line no-console
             console.log('[RAG] Looking up preprompts for questionId:', questionId, 'language:', questionLang);
@@ -789,6 +839,7 @@ export default function DigitalShadow() {
             console.log('[RAG] Final preprompts lookup:', { questionId, questionLang, found: !!preprompts, burstsCount: preprompts?.bursts.length, hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl) });
             
             if (preprompts && preprompts.bursts.length > 0) {
+              prepromptsUsed = true; // Mark that we're using preprompts
               // eslint-disable-next-line no-console
               console.log('[RAG] ✓ Using preprompts for question:', questionId, 'bursts:', preprompts.bursts.length);
               
@@ -852,6 +903,7 @@ export default function DigitalShadow() {
                     }
                   });
                   
+                  prepromptsUsed = true; // Mark that we used preprompts
                   return; // Skip normal RAG flow
                 }
                 
@@ -877,6 +929,7 @@ export default function DigitalShadow() {
                   pendingCitationsRef.current = preprompts.citations;
                 }
                 
+                prepromptsUsed = true; // Mark that we used preprompts
                 return; // Skip normal RAG flow
               } else {
                 // Preprompts exist but audio URLs are missing - generate TTS for bursts
@@ -924,6 +977,8 @@ export default function DigitalShadow() {
                   }
                 })();
                 
+                // Return early to skip normal RAG flow - this MUST be here, not inside the IIFE!
+                prepromptsUsed = true; // Mark that we used preprompts
                 return; // Skip normal RAG flow
               }
             } else {
@@ -935,6 +990,19 @@ export default function DigitalShadow() {
           } else {
             // eslint-disable-next-line no-console
             console.log('[RAG] No questionId found, using normal RAG flow');
+          }
+          
+          // CRITICAL: If we found preprompts and used them, we should have returned already
+          // If we reach here, it means either:
+          // 1. No questionId was found
+          // 2. Preprompts don't exist for this questionId
+          // In both cases, we should generate a new answer
+          
+          // Safety check: If preprompts were used, we should NOT reach here
+          if (prepromptsUsed) {
+            // eslint-disable-next-line no-console
+            console.error('[RAG] ERROR: prepromptsUsed is true but we reached RAG flow! This should not happen!');
+            return; // Exit early to prevent generation
           }
           
           // Note: We already checked currentSuggestedQuestions above, no need to check again
