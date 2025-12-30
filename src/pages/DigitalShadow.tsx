@@ -659,6 +659,9 @@ export default function DigitalShadow() {
           // First check if we have a questionId from clicking a suggested question
           let questionId: string | undefined = currentQuestionIdRef.current;
           
+          // eslint-disable-next-line no-console
+          console.log('[RAG] Checking for questionId:', { questionId, refValue: currentQuestionIdRef.current, text: text.slice(0, 50) });
+          
           // Clear the ref after using it
           if (questionId) {
             currentQuestionIdRef.current = undefined;
@@ -769,19 +772,25 @@ export default function DigitalShadow() {
           
           // Try to get preprompts first
           if (questionId) {
+            // eslint-disable-next-line no-console
+            console.log('[RAG] Looking up preprompts for questionId:', questionId, 'language:', questionLang);
             let preprompts = getPreprompts(questionId, questionLang);
+            // eslint-disable-next-line no-console
+            console.log('[RAG] Initial preprompts lookup result:', { found: !!preprompts, burstsCount: preprompts?.bursts.length, hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl) });
+            
             // If preprompts not found for detected language, try the other language as fallback
             if (!preprompts || preprompts.bursts.length === 0) {
               const fallbackLang: QuestionLanguage = questionLang === 'nl' ? 'en' : 'nl';
               preprompts = getPreprompts(questionId, fallbackLang);
               // eslint-disable-next-line no-console
-              console.log('[RAG] Preprompts not found for', questionLang, ', trying fallback language:', fallbackLang, 'found:', !!preprompts);
+              console.log('[RAG] Preprompts not found for', questionLang, ', trying fallback language:', fallbackLang, 'found:', !!preprompts, 'burstsCount:', preprompts?.bursts.length);
             }
             // eslint-disable-next-line no-console
-            console.log('[RAG] Preprompts lookup:', { questionId, questionLang, found: !!preprompts, burstsCount: preprompts?.bursts.length });
+            console.log('[RAG] Final preprompts lookup:', { questionId, questionLang, found: !!preprompts, burstsCount: preprompts?.bursts.length, hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl) });
+            
             if (preprompts && preprompts.bursts.length > 0) {
               // eslint-disable-next-line no-console
-              console.log('[RAG] Using preprompts for question:', questionId);
+              console.log('[RAG] ✓ Using preprompts for question:', questionId, 'bursts:', preprompts.bursts.length);
               
               // Check if audio URLs are available (if not, we'll need to generate them)
               const hasAudioUrls = preprompts.bursts.every((b) => b.audioUrl);
@@ -1353,6 +1362,11 @@ export default function DigitalShadow() {
   const suggestedQuestionsWithIdsRef = React.useRef(suggestedQuestionsWithIds);
   React.useEffect(() => {
     suggestedQuestionsWithIdsRef.current = suggestedQuestionsWithIds;
+    // eslint-disable-next-line no-console
+    console.log('[DigitalShadow] suggestedQuestionsWithIds updated:', {
+      length: suggestedQuestionsWithIds?.length,
+      questions: suggestedQuestionsWithIds?.map(q => ({ id: q.id, text: q.text.slice(0, 50) }))
+    });
   }, [suggestedQuestionsWithIds]);
 
   // Scroll steeds naar onder bij nieuwe berichten/typindicator
@@ -1574,8 +1588,32 @@ export default function DigitalShadow() {
                 list={suggestedQuestions}
                 questions={suggestedQuestionsWithIds}
                 onSelect={(t, questionId) => {
+                  // eslint-disable-next-line no-console
+                  console.log('[DigitalShadow][onSelect] Received:', { text: t, questionId, hasRef: !!currentQuestionIdRef.current });
+                  
+                  if (!questionId) {
+                    // eslint-disable-next-line no-console
+                    console.error('[DigitalShadow][onSelect] ERROR: questionId is undefined! Attempting to find by text match...');
+                    // Try to find questionId by matching text
+                    const matchedQuestion = suggestedQuestionsWithIds?.find(q => q.text === t);
+                    if (matchedQuestion) {
+                      questionId = matchedQuestion.id;
+                      // eslint-disable-next-line no-console
+                      console.log('[DigitalShadow][onSelect] Found questionId by text match:', questionId);
+                    } else {
+                      // eslint-disable-next-line no-console
+                      console.error('[DigitalShadow][onSelect] Could not find questionId even by text match!', { 
+                        text: t, 
+                        availableQuestions: suggestedQuestionsWithIds?.map(q => ({ id: q.id, text: q.text }))
+                      });
+                    }
+                  }
+                  
                   // Store questionId for preprompts lookup
                   currentQuestionIdRef.current = questionId;
+                  // eslint-disable-next-line no-console
+                  console.log('[DigitalShadow][onSelect] Set currentQuestionIdRef to:', currentQuestionIdRef.current);
+                  
                   // Stuur de gekozen vraag naar Jason
                   dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
                   // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)
