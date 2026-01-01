@@ -18,9 +18,11 @@ interface Props {
   onLanguageChange: (lang: Language) => void;
   onReset: () => void;
   sources: Source[];
+  darkMode?: boolean;
+  onDarkModeToggle?: (enabled: boolean) => void;
 }
 
-export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset, sources }: Props) {
+export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset, sources, darkMode = false, onDarkModeToggle }: Props) {
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   // Close on escape key
@@ -95,6 +97,12 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
 
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
+          {/* AI Disclaimer - First */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">AI Disclaimer</h3>
+            <DisclaimerInline />
+          </div>
+
           {/* Audio Toggle */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
@@ -170,77 +178,106 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
             </p>
           </div>
 
-          {/* Sources */}
+          {/* Dark Mode Toggle */}
+          {onDarkModeToggle && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="dark-mode-toggle" className="text-lg font-medium text-gray-900">
+                  {language === 'nl' ? 'Donkere modus' : 'Dark Mode'}
+                </label>
+                <button
+                  type="button"
+                  id="dark-mode-toggle"
+                  onClick={() => onDarkModeToggle(!darkMode)}
+                  className={cn(
+                    'relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00ABFE] focus:ring-offset-2',
+                    darkMode ? 'bg-[#00ABFE]' : 'bg-gray-300'
+                  )}
+                  aria-label={darkMode ? (language === 'nl' ? 'Donkere modus aan' : 'Dark mode on') : (language === 'nl' ? 'Donkere modus uit' : 'Dark mode off')}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-5 w-5 transform rounded-full bg-white transition-transform',
+                      darkMode ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600">
+                {language === 'nl'
+                  ? (darkMode
+                      ? 'Donkere modus is ingeschakeld'
+                      : 'Donkere modus is uitgeschakeld')
+                  : (darkMode
+                      ? 'Dark mode is enabled'
+                      : 'Dark mode is disabled')}
+              </p>
+            </div>
+          )}
+
+          {/* Sources - Not in a box */}
           <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               {language === 'nl' ? 'Bronnen' : 'Sources'}
             </h3>
-            <div className="bg-gray-50 rounded-[16px] p-4">
-              <ul className="space-y-3">
-                {/* Predefined sources - always shown */}
-                <li className="text-sm text-gray-700">
-                  <span className="font-medium">
-                    {language === 'nl' ? 'Bron 1:' : 'Source 1:'}
-                  </span>{' '}
-                  <a 
-                    href="https://hongkongfp.com/2020/07/24/hong-kong-newlyweds-acquitted-of-rioting-charges/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-[#00ABFE] hover:underline"
-                  >
-                    Hong Kong newlyweds acquitted of rioting charges (HKFP)
-                  </a>
-                </li>
-                <li className="text-sm text-gray-700">
-                  <span className="font-medium">
-                    {language === 'nl' ? 'Bron 2:' : 'Source 2:'}
-                  </span>{' '}
-                  <a 
-                    href="https://hongkongfp.com/2019/08/04/not-even-nuclear-explosion-set-us-apart-hong-kong-couple-wed-days-charged-rioting/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-[#00ABFE] hover:underline"
-                  >
-                    Henry and Elaine marriage (HKFP)
-                  </a>
-                </li>
-                <li className="text-sm text-gray-700">
-                  <span className="font-medium">
-                    {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
-                  </span>{' '}
-                  {language === 'nl' 
-                    ? 'Video interview met Henry (niet toegankelijk voor gebruikers)'
-                    : 'Video interview with Henry (not accessible for users)'}
-                </li>
-                <li className="text-sm text-gray-700">
-                  <span className="font-medium">
-                    {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
-                  </span>{' '}
-                  {language === 'nl' 
-                    ? 'Interview met Henry (niet toegankelijk voor gebruikers)'
-                    : 'Interview with Henry (not accessible for users)'}
-                </li>
-                {/* Additional sources from questions */}
-                {sources.length > 0 && (
-                  <>
-                    {sources.map((source, index) => (
-                      <li key={source.documentId} className="text-sm text-gray-700">
-                        <span className="font-medium">
-                          {language === 'nl' ? `Bron ${index + 5}:` : `Source ${index + 5}:`}
-                        </span>{' '}
-                        {source.title}
-                      </li>
-                    ))}
-                  </>
-                )}
-              </ul>
-            </div>
-          </div>
-
-          {/* AI Disclaimer */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">AI Disclaimer</h3>
-            <DisclaimerInline />
+            <ul className="space-y-3">
+              {/* Predefined sources - always shown */}
+              <li className="text-sm text-gray-700">
+                <span className="font-medium">
+                  {language === 'nl' ? 'Bron 1:' : 'Source 1:'}
+                </span>{' '}
+                <a 
+                  href="https://hongkongfp.com/2020/07/24/hong-kong-newlyweds-acquitted-of-rioting-charges/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[#00ABFE] hover:underline"
+                >
+                  Hong Kong newlyweds acquitted of rioting charges (HKFP)
+                </a>
+              </li>
+              <li className="text-sm text-gray-700">
+                <span className="font-medium">
+                  {language === 'nl' ? 'Bron 2:' : 'Source 2:'}
+                </span>{' '}
+                <a 
+                  href="https://hongkongfp.com/2019/08/04/not-even-nuclear-explosion-set-us-apart-hong-kong-couple-wed-days-charged-rioting/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[#00ABFE] hover:underline"
+                >
+                  Henry and Elaine marriage (HKFP)
+                </a>
+              </li>
+              <li className="text-sm text-gray-700">
+                <span className="font-medium">
+                  {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
+                </span>{' '}
+                {language === 'nl' 
+                  ? 'Video interview met Henry (niet toegankelijk voor gebruikers)'
+                  : 'Video interview with Henry (not accessible for users)'}
+              </li>
+              <li className="text-sm text-gray-700">
+                <span className="font-medium">
+                  {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
+                </span>{' '}
+                {language === 'nl' 
+                  ? 'Interview met Henry (niet toegankelijk voor gebruikers)'
+                  : 'Interview with Henry (not accessible for users)'}
+              </li>
+              {/* Additional sources from questions */}
+              {sources.length > 0 && (
+                <>
+                  {sources.map((source, index) => (
+                    <li key={source.documentId} className="text-sm text-gray-700">
+                      <span className="font-medium">
+                        {language === 'nl' ? `Bron ${index + 5}:` : `Source ${index + 5}:`}
+                      </span>{' '}
+                      {source.title}
+                    </li>
+                  ))}
+                </>
+              )}
+            </ul>
           </div>
 
           {/* Contact for original files */}

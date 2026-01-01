@@ -426,6 +426,22 @@ export default function DigitalShadow() {
     localStorage.setItem('Henry-language', language);
   }, [language]);
 
+  // ---------- Dark mode state (with localStorage persistence) ----------
+  const [darkMode, setDarkMode] = React.useState<boolean>(() => {
+    const stored = localStorage.getItem('Henry-darkMode');
+    return stored === 'true';
+  });
+  
+  React.useEffect(() => {
+    localStorage.setItem('Henry-darkMode', darkMode.toString());
+    // Apply dark mode class to document
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   // ---------- UI state machine ----------
   const [ui, setUI] = React.useState<UIState>('idle');
   const [ctx, setCtx] = React.useState<UIContext>(() => ({
@@ -665,9 +681,12 @@ export default function DigitalShadow() {
 
         // Store text in a const to ensure it's captured correctly in the closure
         const questionText = text;
-        
-        // Use setTimeout to ensure the dispatch completes first
-        const asyncHandler = async () => {
+          
+          // eslint-disable-next-line no-console
+          console.log('[DISPATCH] questionText stored:', { length: questionText.length, preview: questionText.slice(0, 50) });
+          
+          // Use setTimeout to ensure the dispatch completes first
+          const asyncHandler = async () => {
           // eslint-disable-next-line no-console
           console.log('[RAG] asyncHandler called for:', questionText.slice(0, 50), 'fullLength:', questionText.length);
           
@@ -889,7 +908,7 @@ export default function DigitalShadow() {
                     id: q.id, 
                     text: qText.slice(0, 50),
                     textLength: qText.length,
-                    exactMatch: qText === text.trim(),
+                    exactMatch: qText === questionText.trim(),
                     caseInsensitiveMatch: qTextLower === userTextLower,
                     questionStartsWithUser: qTextLower.startsWith(userTextLower),
                     userStartsWithQuestion: userTextLower.startsWith(qTextLower),
@@ -1339,6 +1358,8 @@ export default function DigitalShadow() {
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
         };
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] asyncHandler function defined, about to schedule setTimeout', { questionTextLength: questionText.length, questionTextPreview: questionText.slice(0, 50) });
         // eslint-disable-next-line no-console
         console.log('[DISPATCH] Scheduling asyncHandler with setTimeout', { textLength: questionText.length, textPreview: questionText.slice(0, 50) });
         setTimeout(() => {
@@ -1836,6 +1857,10 @@ export default function DigitalShadow() {
           setAllSources([]); // Reset sources when conversation is reset
         }}
         sources={allSources}
+        darkMode={darkMode}
+        onDarkModeToggle={(enabled) => {
+          setDarkMode(enabled);
+        }}
       />
 
     </div>
