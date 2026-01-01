@@ -636,7 +636,11 @@ export default function DigitalShadow() {
         // Debounce duplicate requests (same text within 2 seconds)
         const now = Date.now();
         const textHash = text.toLowerCase().trim();
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] Checking debounce:', { textHash: textHash.slice(0, 50), lastRequest: lastRequestRef.current?.slice(0, 50) });
         if (lastRequestRef.current === textHash) {
+          // eslint-disable-next-line no-console
+          console.log('[DISPATCH] Blocked: Duplicate request (debounce)');
           return;
         }
         lastRequestRef.current = textHash;
@@ -654,8 +658,11 @@ export default function DigitalShadow() {
         // Use setTimeout to ensure the dispatch completes first
         const asyncHandler = async () => {
           // eslint-disable-next-line no-console
-          console.log('[RAG] Starting AI response for:', text.slice(0, 50));
-          dispatch({ type: 'AI_START', id: crypto.randomUUID() });
+          console.log('[RAG] asyncHandler called for:', text.slice(0, 50));
+          try {
+            // eslint-disable-next-line no-console
+            console.log('[RAG] Starting AI response for:', text.slice(0, 50));
+            dispatch({ type: 'AI_START', id: crypto.randomUUID() });
           
           // Detect the language of the user's question
           const questionLang = detectQuestionLanguage(text);
@@ -1324,10 +1331,20 @@ export default function DigitalShadow() {
               }
             })();
           } catch (e: any) {
+            // eslint-disable-next-line no-console
+            console.error('[RAG] Error in asyncHandler:', e);
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
         };
-        setTimeout(asyncHandler, 0);
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] Scheduling asyncHandler with setTimeout');
+        setTimeout(() => {
+          asyncHandler().catch((err) => {
+            // eslint-disable-next-line no-console
+            console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
+            setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
+          });
+        }, 0);
       }
     }
   }, []);
