@@ -623,13 +623,18 @@ export default function DigitalShadow() {
 
         // Prevent multiple AI responses for the same user input
         // But allow if we're transitioning from recording to typing
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] Checking duplicate prevention:', { currentUI, textLength: text.length });
         if (currentUI === 'ai_response_typing' || currentUI === 'ai_response_playing') {
           // Check if this is a duplicate request (same text)
           const lastUserMessage = currentCtx.messages.filter((m: { role: string }) => m.role === 'user').pop();
           if (lastUserMessage && lastUserMessage.text === text.trim()) {
             // eslint-disable-next-line no-console
-            console.log('[DISPATCH] Blocked: Duplicate user message', currentUI);
+            console.log('[DISPATCH] Blocked: Duplicate user message', { currentUI, lastMessage: lastUserMessage.text.slice(0, 50), newMessage: text.slice(0, 50) });
             return;
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('[DISPATCH] Not a duplicate, allowing:', { lastMessage: lastUserMessage?.text?.slice(0, 50), newMessage: text.slice(0, 50) });
           }
         }
 
@@ -659,6 +664,14 @@ export default function DigitalShadow() {
         const asyncHandler = async () => {
           // eslint-disable-next-line no-console
           console.log('[RAG] asyncHandler called for:', text.slice(0, 50));
+          
+          // Ensure we have valid text
+          if (!text || text.trim().length === 0) {
+            // eslint-disable-next-line no-console
+            console.error('[RAG] ERROR: Empty text in asyncHandler!');
+            return;
+          }
+          
           // eslint-disable-next-line no-console
           console.log('[RAG] Starting AI response for:', text.slice(0, 50));
           dispatch({ type: 'AI_START', id: crypto.randomUUID() });
@@ -1321,11 +1334,14 @@ export default function DigitalShadow() {
           }
         };
         // eslint-disable-next-line no-console
-        console.log('[DISPATCH] Scheduling asyncHandler with setTimeout');
+        console.log('[DISPATCH] Scheduling asyncHandler with setTimeout', { textLength: text.length, textPreview: text.slice(0, 50) });
         setTimeout(() => {
+          // eslint-disable-next-line no-console
+          console.log('[DISPATCH] setTimeout callback executing, calling asyncHandler');
           asyncHandler().catch((err) => {
             // eslint-disable-next-line no-console
             console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
+            console.error('[DISPATCH] Error stack:', err?.stack);
             setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
           });
         }, 0);

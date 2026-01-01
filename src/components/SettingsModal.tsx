@@ -175,26 +175,76 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               {language === 'nl' ? 'Bronnen' : 'Sources'}
             </h3>
-            {sources.length === 0 ? (
-              <p className="text-sm text-gray-600">
-                {language === 'nl' 
-                  ? 'Er zijn nog geen bronnen beschikbaar. Bronnen worden toegevoegd wanneer je vragen stelt aan Henry.'
-                  : 'No sources available yet. Sources will be added when you ask questions to Henry.'}
-              </p>
-            ) : (
-              <div className="bg-gray-50 rounded-[16px] p-4">
-                <ul className="space-y-2">
-                  {sources.map((source, index) => (
-                    <li key={source.documentId} className="text-sm text-gray-700">
-                      <span className="font-medium">
-                        {language === 'nl' ? `Bron ${index + 1}:` : `Source ${index + 1}:`}
-                      </span>{' '}
-                      {source.title}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <div className="bg-gray-50 rounded-[16px] p-4">
+              <ul className="space-y-3">
+                {/* Predefined sources - always shown */}
+                <li className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {language === 'nl' ? 'Bron 1:' : 'Source 1:'}
+                  </span>{' '}
+                  <a 
+                    href="https://hongkongfp.com/2020/07/24/hong-kong-newlyweds-acquitted-of-rioting-charges/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#00ABFE] hover:underline"
+                  >
+                    Hong Kong newlyweds acquitted of rioting charges
+                  </a>
+                </li>
+                <li className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {language === 'nl' ? 'Bron 2:' : 'Source 2:'}
+                  </span>{' '}
+                  <a 
+                    href="https://hongkongfp.com/2019/08/04/not-even-nuclear-explosion-set-us-apart-hong-kong-couple-wed-days-charged-rioting/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#00ABFE] hover:underline"
+                  >
+                    Henry and Elaine marriage
+                  </a>
+                </li>
+                <li className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
+                  </span>{' '}
+                  Video interview met/with henry (not accessible for users)
+                </li>
+                <li className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
+                  </span>{' '}
+                  Interview met/with Henry, (not accessible for users)
+                </li>
+                <li className="text-sm text-gray-600 italic mt-2">
+                  {language === 'nl' 
+                    ? 'Als je geïnteresseerd bent in het bekijken van de originele bestanden, neem dan contact met ons op via '
+                    : 'If you are interested in looking into the original files please contact us at '}
+                  <a 
+                    href="mailto:L.Ye@vpro.nl" 
+                    className="text-[#00ABFE] hover:underline"
+                  >
+                    L.Ye@vpro.nl
+                  </a>
+                  {language === 'nl' 
+                    ? ' om toegang te vragen voor de bestanden en de reden.'
+                    : ' to request access for the files and reasoning.'}
+                </li>
+                {/* Additional sources from questions */}
+                {sources.length > 0 && (
+                  <>
+                    {sources.map((source, index) => (
+                      <li key={source.documentId} className="text-sm text-gray-700">
+                        <span className="font-medium">
+                          {language === 'nl' ? `Bron ${index + 5}:` : `Source ${index + 5}:`}
+                        </span>{' '}
+                        {source.title}
+                      </li>
+                    ))}
+                  </>
+                )}
+              </ul>
+            </div>
           </div>
 
           {/* AI Disclaimer */}
