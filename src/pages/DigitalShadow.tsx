@@ -492,6 +492,9 @@ export default function DigitalShadow() {
   // Dispatch ref for callbacks
   const dispatchRef = React.useRef<(action: Action) => void>();
 
+  // Audio player ref (declared early for use in dispatch)
+  const audioPlayerRef = React.useRef<ReturnType<typeof useAudioPlayer> | null>(null);
+
   // Debounce mechanism to prevent duplicate requests
   const lastRequestRef = React.useRef<string>('');
   const requestTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -567,7 +570,7 @@ export default function DigitalShadow() {
 
 
   // ---------- Dispatcher (defined early for use in hooks) ----------
-  const dispatch = React.useCallback((action: Action) => {
+  const dispatch: (action: Action) => void = React.useCallback((action: Action) => {
     const currentCtx = ctxRef.current;
     const currentUI = uiRef.current;
 
@@ -577,6 +580,16 @@ export default function DigitalShadow() {
     setCtx(nextCtx);
 
     // Side effects (imperative I/O)
+    if (action.type === 'RESET') {
+      // Hard reset: stop audio, timers uit
+      // Note: audioPlayerRef will be set later, but we access it via ref
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.stop();
+      }
+      cancelIdleTimerRef.current();
+      return;
+    }
+    
     if (action.type === 'MIC_TAP') {
         // Start speech recognition with live preview
         // Use Web Speech only - it's reliable on both iOS and web
@@ -602,7 +615,7 @@ export default function DigitalShadow() {
         if (!text || text.trim().length === 0 || text.includes('... ... ...') || isGarbage) {
           // eslint-disable-next-line no-console
           console.log('[DISPATCH] Rejecting invalid/garbage text:', text);
-          break;
+          return;
         }
         
         // eslint-disable-next-line no-console
@@ -616,7 +629,7 @@ export default function DigitalShadow() {
           if (lastUserMessage && lastUserMessage.text === text.trim()) {
             // eslint-disable-next-line no-console
             console.log('[DISPATCH] Blocked: Duplicate user message', currentUI);
-            break;
+            return;
           }
         }
 
@@ -624,7 +637,7 @@ export default function DigitalShadow() {
         const now = Date.now();
         const textHash = text.toLowerCase().trim();
         if (lastRequestRef.current === textHash) {
-          break;
+          return;
         }
         lastRequestRef.current = textHash;
 
@@ -1310,20 +1323,14 @@ export default function DigitalShadow() {
                 }
               }
             })();
-            // IIFE completed
           } catch (e: any) {
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
         };
         setTimeout(asyncHandler, 0);
       }
-      
-      if (action.type === 'RESET') {
-        // Hard reset: stop audio, timers uit
-        audioPlayer.stop();
-        cancelIdleTimerRef.current();
-      }
-    }, []);
+    }
+  }, []);
 
   // Set dispatch ref
   dispatchRef.current = dispatch;
@@ -1544,7 +1551,7 @@ export default function DigitalShadow() {
   }, [ui]);
 
   // Refs for imperative handles
-  const audioPlayerRef = React.useRef(audioPlayer);
+  // audioPlayerRef is already declared above, just update it
   audioPlayerRef.current = audioPlayer;
 
   const startIdleTimerRef = React.useRef(startIdleTimer);
