@@ -677,16 +677,22 @@ export default function DigitalShadow() {
         }, 2000);
 
         // eslint-disable-next-line no-console
-        console.log('[DISPATCH] After debounce check, about to create asyncHandler', { textLength: text.length, textFull: text });
+        console.log('[DISPATCH] After debounce check, about to create asyncHandler', { textLength: text?.length, textFull: text });
 
         // Store text in a const to ensure it's captured correctly in the closure
-        const questionText = text;
-          
+        if (!text || typeof text !== 'string') {
           // eslint-disable-next-line no-console
-          console.log('[DISPATCH] questionText stored:', { length: questionText.length, preview: questionText.slice(0, 50) });
-          
-          // Use setTimeout to ensure the dispatch completes first
-          const asyncHandler = async () => {
+          console.error('[DISPATCH] ERROR: text is invalid!', { text, type: typeof text });
+          return;
+        }
+        
+        const questionText = text;
+        
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] questionText stored:', { length: questionText.length, preview: questionText.slice(0, 50) });
+        
+        // Use setTimeout to ensure the dispatch completes first
+        const asyncHandler = async () => {
           // eslint-disable-next-line no-console
           console.log('[RAG] asyncHandler called for:', questionText.slice(0, 50), 'fullLength:', questionText.length);
           
@@ -1021,7 +1027,7 @@ export default function DigitalShadow() {
                   // eslint-disable-next-line no-console
                   console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
                   
-                  audioPlayer.enqueue({
+                  audioPlayerRef.current?.enqueue({
                     id: msgId,
                     text: burst.text,
                     url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
@@ -1060,7 +1066,7 @@ export default function DigitalShadow() {
                         const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
                         // eslint-disable-next-line no-console
                         console.log('[RAG][PREPROMPT][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: burstImageUrl });
-                        audioPlayer.enqueue({ 
+                        audioPlayerRef.current?.enqueue({ 
                           id: msgId, 
                           text: result.chunk, 
                           url: result.audioUrl,
@@ -1178,7 +1184,7 @@ export default function DigitalShadow() {
                 const msgId = crypto.randomUUID();
                 // eslint-disable-next-line no-console
                 console.log('[RAG][TTS] enqueue fallback burst', { msgId, text: fallback, audioUrl });
-                audioPlayer.enqueue({ id: msgId, text: fallback, url: audioUrl });
+                audioPlayerRef.current?.enqueue({ id: msgId, text: fallback, url: audioUrl });
               } catch (err) {
                 // eslint-disable-next-line no-console
                 console.error('[RAG][TTS] fallback TTS failed', err);
@@ -1339,7 +1345,7 @@ export default function DigitalShadow() {
                     const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
                     // eslint-disable-next-line no-console
                     console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: burstImageUrl, isLastBurst });
-                    audioPlayer.enqueue({ 
+                    audioPlayerRef.current?.enqueue({ 
                       id: msgId, 
                       text: result.chunk, 
                       url: result.audioUrl,
@@ -1435,7 +1441,7 @@ export default function DigitalShadow() {
             const finalMsgId = crypto.randomUUID();
             // eslint-disable-next-line no-console
             console.log('[AudioPlayer] Adding final message after image', { id: finalMsgId, text: finalText, audioUrl });
-            audioPlayer.enqueue({ 
+            audioPlayerRef.current?.enqueue({ 
               id: finalMsgId, 
               text: finalText, 
               url: audioUrl 
@@ -1823,7 +1829,7 @@ export default function DigitalShadow() {
         .mobile-message-container {
           position: fixed !important;
           z-index: 30 !important;
-          background-color: #EEEEEE !important;
+          background-color: var(--color-jerboa) !important;
         }
         /* Ensure proper stacking context */
         .mobile-message-container > div {

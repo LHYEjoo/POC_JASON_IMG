@@ -23,6 +23,40 @@ body {
   color: #000000; /* fallback for --color-text */
 }
 
+/* Dark mode styles */
+.dark {
+  --color-jerboa: #1a1a1a;
+  --color-wolf: #2d2d2d;
+  --color-text: #ffffff;
+}
+
+.dark body {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.dark .bg-white {
+  background-color: #1a1a1a !important;
+}
+
+.dark .text-gray-900,
+.dark .text-gray-700,
+.dark .text-gray-600,
+.dark .text-black {
+  color: #ffffff !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-200 {
+  background-color: #2d2d2d !important;
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #404040 !important;
+}
+
 /* Mobile-specific improvements */
 @media (max-width: 640px) {
   /* Improve touch targets */
