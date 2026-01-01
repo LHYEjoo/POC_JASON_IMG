@@ -577,8 +577,7 @@ export default function DigitalShadow() {
     setCtx(nextCtx);
 
     // Side effects (imperative I/O)
-    switch (action.type) {
-      case 'MIC_TAP': {
+    if (action.type === 'MIC_TAP') {
         // Start speech recognition with live preview
         // Use Web Speech only - it's reliable on both iOS and web
         const speechId = crypto.randomUUID();
@@ -586,11 +585,7 @@ export default function DigitalShadow() {
         
         // Start Web Speech for live preview (interim results) and final result
         sttRef.current.start();
-        break;
-      }
-
-      case 'ADD_USER':
-      case 'RECOG_RESULT': {
+      } else if (action.type === 'ADD_USER' || action.type === 'RECOG_RESULT') {
         const text = action.type === 'ADD_USER' ? action.text : action.text;
         const speechId = action.type === 'RECOG_RESULT' ? action.id : undefined;
 
@@ -644,7 +639,7 @@ export default function DigitalShadow() {
         }, 2000);
 
         // Use setTimeout to ensure the dispatch completes first
-        setTimeout(async () => {
+        const asyncHandler = async () => {
           // eslint-disable-next-line no-console
           console.log('[RAG] Starting AI response for:', text.slice(0, 50));
           dispatch({ type: 'AI_START', id: crypto.randomUUID() });
@@ -1266,21 +1261,16 @@ export default function DigitalShadow() {
           } catch (e: any) {
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
-        }, 0);
-        break;
+        };
+        setTimeout(asyncHandler, 0);
       }
-
-      case 'RESET': {
+      
+      if (action.type === 'RESET') {
         // Hard reset: stop audio, timers uit
         audioPlayer.stop();
         cancelIdleTimerRef.current();
-        break;
       }
-
-      default:
-        break;
-    }
-  }, []);
+    }, []);
 
   // Set dispatch ref
   dispatchRef.current = dispatch;
