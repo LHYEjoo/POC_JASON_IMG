@@ -60,7 +60,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
       <div
         ref={modalRef}
         className={cn(
-          'bg-white dark:bg-[#1a1a1a] rounded-[24px] shadow-vpro max-w-2xl w-full max-h-[90vh]',
+          'bg-white rounded-[24px] shadow-vpro max-w-2xl w-full max-h-[90vh]',
           'flex flex-col overflow-hidden'
         )}
         style={{
@@ -69,8 +69,8 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{language === 'nl' ? 'Instellingen' : 'Settings'}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 className="text-2xl font-semibold text-gray-900">{language === 'nl' ? 'Instellingen' : 'Settings'}</h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -99,14 +99,14 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {/* AI Disclaimer - First */}
           <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">AI Disclaimer</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">AI Disclaimer</h3>
             <DisclaimerInline />
           </div>
 
           {/* Audio Toggle */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="audio-toggle" className="text-lg font-medium text-gray-900 dark:text-white">
+              <label htmlFor="audio-toggle" className="text-lg font-medium text-gray-900">
                 {language === 'nl' ? 'Audio afspelen' : 'Play Audio'}
               </label>
               <button
@@ -127,7 +127,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 />
               </button>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-gray-600">
               {language === 'nl'
                 ? (audioEnabled
                     ? 'Henry spreekt zijn antwoorden uit'
@@ -141,7 +141,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
           {/* Language Toggle */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="language-toggle" className="text-lg font-medium text-gray-900 dark:text-white">
+              <label htmlFor="language-toggle" className="text-lg font-medium text-gray-900">
                 {language === 'nl' ? 'Taal' : 'Language'}
               </label>
               <div className="flex gap-2">
@@ -171,7 +171,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 </button>
               </div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-gray-600">
               {language === 'nl'
                 ? 'Kies de taal waarin Henry communiceert'
                 : 'Choose the language Henry communicates in'}
@@ -182,7 +182,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
           {onDarkModeToggle && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="dark-mode-toggle" className="text-lg font-medium text-gray-900 dark:text-white">
+                <label htmlFor="dark-mode-toggle" className="text-lg font-medium text-gray-900">
                   {language === 'nl' ? 'Donkere modus' : 'Dark Mode'}
                 </label>
                 <button
@@ -203,7 +203,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                   />
                 </button>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-gray-600">
                 {language === 'nl'
                   ? (darkMode
                       ? 'Donkere modus is ingeschakeld'
@@ -217,12 +217,12 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
 
           {/* Sources - Not in a box */}
           <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
               {language === 'nl' ? 'Bronnen' : 'Sources'}
             </h3>
             <ul className="space-y-3">
               {/* Predefined sources - always shown */}
-              <li className="text-sm text-gray-700 dark:text-gray-300">
+              <li className="text-sm text-gray-700">
                 <span className="font-medium">
                   {language === 'nl' ? 'Bron 1:' : 'Source 1:'}
                 </span>{' '}
@@ -235,7 +235,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                   Hong Kong newlyweds acquitted of rioting charges (HKFP)
                 </a>
               </li>
-              <li className="text-sm text-gray-700 dark:text-gray-300">
+              <li className="text-sm text-gray-700">
                 <span className="font-medium">
                   {language === 'nl' ? 'Bron 2:' : 'Source 2:'}
                 </span>{' '}
@@ -248,7 +248,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                   Henry and Elaine marriage (HKFP)
                 </a>
               </li>
-              <li className="text-sm text-gray-700 dark:text-gray-300">
+              <li className="text-sm text-gray-700">
                 <span className="font-medium">
                   {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
                 </span>{' '}
@@ -256,7 +256,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                   ? 'Video interview met Henry (niet toegankelijk voor gebruikers)'
                   : 'Video interview with Henry (not accessible for users)'}
               </li>
-              <li className="text-sm text-gray-700 dark:text-gray-300">
+              <li className="text-sm text-gray-700">
                 <span className="font-medium">
                   {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
                 </span>{' '}
@@ -282,7 +282,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
 
           {/* Contact for original files */}
           <div className="mb-8">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-gray-600">
               {language === 'nl' 
                 ? (
                   <>

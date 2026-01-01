@@ -1365,13 +1365,11 @@ export default function DigitalShadow() {
           }
         };
         // eslint-disable-next-line no-console
-        console.log('[DISPATCH] asyncHandler function defined, about to schedule setTimeout', { questionTextLength: questionText.length, questionTextPreview: questionText.slice(0, 50) });
-        // eslint-disable-next-line no-console
-        console.log('[DISPATCH] Scheduling asyncHandler with setTimeout', { textLength: questionText.length, textPreview: questionText.slice(0, 50) });
+        console.log('[DISPATCH] asyncHandler function defined');
         setTimeout(() => {
           // eslint-disable-next-line no-console
-          console.log('[DISPATCH] setTimeout callback executing, calling asyncHandler');
-          asyncHandler().catch((err) => {
+          console.log('[DISPATCH] setTimeout executing, calling asyncHandler');
+          asyncHandler().catch((err: any) => {
             // eslint-disable-next-line no-console
             console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
             console.error('[DISPATCH] Error stack:', err?.stack);
