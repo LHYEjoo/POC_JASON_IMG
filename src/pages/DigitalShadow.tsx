@@ -691,7 +691,13 @@ export default function DigitalShadow() {
         // eslint-disable-next-line no-console
         console.log('[DISPATCH] questionText stored:', { length: questionText.length, preview: questionText.slice(0, 50) });
         
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] Step 1: questionText stored successfully');
+        
         // Use setTimeout to ensure the dispatch completes first
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] Step 2: About to define asyncHandler function');
+        
         const asyncHandler = async () => {
           // eslint-disable-next-line no-console
           console.log('[RAG] asyncHandler called for:', questionText.slice(0, 50), 'fullLength:', questionText.length);
@@ -1363,19 +1369,21 @@ export default function DigitalShadow() {
             console.error('[RAG] Error in asyncHandler:', e);
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
-        };
-        // eslint-disable-next-line no-console
-        console.log('[DISPATCH] asyncHandler function defined');
-        setTimeout(() => {
+          };
+          
           // eslint-disable-next-line no-console
-          console.log('[DISPATCH] setTimeout executing, calling asyncHandler');
-          asyncHandler().catch((err: any) => {
+          console.log('[DISPATCH] Step 3: asyncHandler function defined successfully');
+          
+          setTimeout(() => {
             // eslint-disable-next-line no-console
-            console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
-            console.error('[DISPATCH] Error stack:', err?.stack);
-            setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
-          });
-        }, 0);
+            console.log('[DISPATCH] setTimeout executing, calling asyncHandler');
+            asyncHandler().catch((err: any) => {
+              // eslint-disable-next-line no-console
+              console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
+              console.error('[DISPATCH] Error stack:', err?.stack);
+              setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
+            });
+          }, 0);
       }
     }
   }, []);
