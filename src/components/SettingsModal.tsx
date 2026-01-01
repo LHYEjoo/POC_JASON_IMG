@@ -115,11 +115,11 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
             <p className="text-sm text-gray-600">
               {language === 'nl'
                 ? (audioEnabled
-                    ? 'Jason spreekt zijn antwoorden uit'
-                    : 'Jason spreekt zijn antwoorden niet uit')
+                    ? 'Henry spreekt zijn antwoorden uit'
+                    : 'Henry spreekt zijn antwoorden niet uit')
                 : (audioEnabled
-                    ? 'Jason speaks his answers out loud'
-                    : 'Jason does not speak his answers out loud')}
+                    ? 'Henry speaks his answers out loud'
+                    : 'Henry does not speak his answers out loud')}
             </p>
           </div>
 
@@ -158,8 +158,8 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
             </div>
             <p className="text-sm text-gray-600">
               {language === 'nl'
-                ? 'Kies de taal waarin Jason communiceert'
-                : 'Choose the language Jason communicates in'}
+                ? 'Kies de taal waarin Henry communiceert'
+                : 'Choose the language Henry communicates in'}
             </p>
           </div>
 

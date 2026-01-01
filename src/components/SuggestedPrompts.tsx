@@ -35,9 +35,12 @@ export default function SuggestedPrompts({
               key={t}
               type="button"
               onClick={() => {
+                // Use full question text from questions array, not truncated display text
+                const fullText = question?.text || t;
                 // eslint-disable-next-line no-console
                 console.log('[SuggestedPrompts] Button clicked:', { 
-                  text: t, 
+                  displayText: t,
+                  fullText: fullText,
                   questionId: question?.id, 
                   hasQuestion: !!question,
                   hasQuestions: !!questions, 
@@ -51,7 +54,8 @@ export default function SuggestedPrompts({
                   // eslint-disable-next-line no-console
                   console.error('[SuggestedPrompts] WARNING: questionId is undefined!', { text: t, question, questions });
                 }
-                onSelect(t, question?.id);
+                // Pass full question text, not truncated display text
+                onSelect(fullText, question?.id);
               }}
               className="text-center rounded-[16px] px-3 py-3 sm:px-4 sm:py-4 bg-[#00ABFE] text-black shadow-vpro hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black text-sm sm:text-base"
             >

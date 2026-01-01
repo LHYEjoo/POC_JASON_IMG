@@ -143,7 +143,7 @@ function sanitizeQuestion(question: string): string {
   return sanitized;
 }
 
-function buildJasonRAGPrompt(question: string, chunks: Array<{ content: string }>, lang: Language) {
+function buildHenryRAGPrompt(question: string, chunks: Array<{ content: string }>, lang: Language) {
   // Sanitize the question to remove instruction-like patterns
   const sanitizedQuestion = sanitizeQuestion(question);
   
@@ -418,12 +418,12 @@ const getInitialMessages = (lang: Language): Array<{ id: string; role: 'ai' | 'u
 export default function DigitalShadow() {
   // ---------- Language state (with localStorage persistence) ----------
   const [language, setLanguage] = React.useState<Language>(() => {
-    const stored = localStorage.getItem('jason-language');
+    const stored = localStorage.getItem('Henry-language');
     return (stored === 'en' || stored === 'nl') ? stored : 'nl';
   });
   
   React.useEffect(() => {
-    localStorage.setItem('jason-language', language);
+    localStorage.setItem('Henry-language', language);
   }, [language]);
 
   // ---------- UI state machine ----------
@@ -694,6 +694,27 @@ export default function DigitalShadow() {
                   return true;
                 }
                 
+                // AGGRESSIVE: Check if question text starts with user text (allowing for punctuation/word ending differences)
+                // This handles "verbinding" vs "verbindingen" cases
+                if (userTextLower.length >= 20) {
+                  // Remove trailing punctuation from both
+                  const userTextClean = userTextLower.replace(/[.,;:!?]+$/, '').trim();
+                  const qTextClean = qTextLower.replace(/[.,;:!?]+$/, '').trim();
+                  
+                  // Check if question starts with user text (exact match)
+                  if (qTextClean.startsWith(userTextClean) && userTextClean.length >= 20) {
+                    return true;
+                  }
+                  
+                  // Check if question starts with first 90% of user text (handles minor truncation)
+                  if (userTextClean.length >= 25) {
+                    const userText90 = userTextClean.substring(0, Math.floor(userTextClean.length * 0.9));
+                    if (qTextClean.startsWith(userText90) && userText90.length >= 20) {
+                      return true;
+                    }
+                  }
+                }
+                
                 // Check if user text starts with question text (less common but possible)
                 if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 15) {
                   return true;
@@ -705,9 +726,41 @@ export default function DigitalShadow() {
                   return true;
                 }
                 
+                // Also check with normalized punctuation (remove trailing punctuation)
+                if (userTextLower.length >= 20) {
+                  const userTextNormalized = userTextLower.replace(/[.,;:!?]+$/, '').trim();
+                  if (userTextNormalized.length >= 15 && qTextLower.includes(userTextNormalized)) {
+                    return true;
+                  }
+                }
+                
                 // Check if question text is contained in user text (at least 15 chars)
                 if (qTextLower.length >= 15 && userTextLower.includes(qTextLower)) {
                   return true;
+                }
+                
+                // IMPROVED: Check if user text matches the beginning of question text
+                // This handles cases where user says "verbinding" but question has "verbindingen"
+                // Compare first N chars where N is the length of user text
+                if (userTextLower.length >= 20) {
+                  const questionStart = qTextLower.substring(0, Math.min(qTextLower.length, userTextLower.length + 5));
+                  // Check if question start is very similar to user text (allowing for small differences at the end)
+                  // For example: "verbinding" vs "verbindingen" - first 10 chars match exactly
+                  const minCompareLen = Math.min(userTextLower.length - 3, questionStart.length); // Allow 3 char difference
+                  if (minCompareLen >= 15) {
+                    const userStart = userTextLower.substring(0, minCompareLen);
+                    const qStart = questionStart.substring(0, minCompareLen);
+                    if (userStart === qStart) {
+                      return true; // First part matches, likely the same question
+                    }
+                  }
+                  // Also check if question starts with user text (allowing for word endings)
+                  // Remove trailing punctuation and compare
+                  const userTextClean2 = userTextLower.replace(/[.,;:!?]+$/, '').trim();
+                  const questionStartClean = questionStart.replace(/[.,;:!?]+$/, '').trim();
+                  if (questionStartClean.startsWith(userTextClean2) && userTextClean2.length >= 20) {
+                    return true;
+                  }
                 }
                 
                 // Check if first part of question matches (for speech recognition truncation)
@@ -1082,7 +1135,7 @@ export default function DigitalShadow() {
               return;
             }
 
-            const messages = buildJasonRAGPrompt(text, search.chunks || [], questionLang);
+            const messages = buildHenryRAGPrompt(text, search.chunks || [], questionLang);
             const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-4o-mini', temperature: 0 });
             if (!answer?.ok) {
               throw new Error(answer?.error || 'answer failed');
@@ -1519,7 +1572,7 @@ export default function DigitalShadow() {
         zIndex: 1
       }}
     >
-      <HeaderBar name="Jason" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
+      <HeaderBar name="Henry" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
 
       {/* Chat Messages Container - Flexible height for all messages */}
       <div
@@ -1576,7 +1629,7 @@ export default function DigitalShadow() {
                       type={m.role}
                       text={m.text}
                       showAvatar={m.role === 'ai'}
-                      avatarSrc="/img/jason.png"
+                      avatarSrc="/img/Henry.png"
                       status={m.status}
                       imageUrl={m.imageUrl}
                     />
@@ -1671,7 +1724,7 @@ export default function DigitalShadow() {
                   // eslint-disable-next-line no-console
                   console.log('[DigitalShadow][onSelect] Set currentQuestionIdRef to:', currentQuestionIdRef.current);
                   
-                  // Stuur de gekozen vraag naar Jason
+                  // Stuur de gekozen vraag naar Henry
                   dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
                   // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)
                   nextSuggestedQuestions(t);

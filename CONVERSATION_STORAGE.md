@@ -81,7 +81,7 @@ Each conversation is stored as:
     {
       "id": "msg_124", 
       "role": "ai",
-      "text": "I'm Jason, a Hong Kong refugee...",
+      "text": "I'm Henry, a Hong Kong refugee...",
       "status": "final",
       "timestamp": "2024-01-15T10:30:05.000Z"
     }

@@ -8,7 +8,7 @@ Your system now has a **working RAG integration** with the following features:
 - Voice recognition (fixed)
 - Streaming AI responses (fixed)
 - Basic RAG context retrieval
-- Jason's character background integration
+- Henry's character background integration
 
 ### 🔧 **RAG System Architecture:**
 
@@ -41,7 +41,7 @@ async function searchWithVectorDB(query, options) {
     body: JSON.stringify({
       query,
       top_k: 5,
-      filter: { character: 'jason' }, // Filter for Jason's documents
+      filter: { character: 'Henry' }, // Filter for Henry's documents
     }),
   });
   
@@ -87,7 +87,7 @@ async function searchWithEmbeddings(query) {
   });
   
   // Search in vector database
-  const index = pinecone.index('jason-documents');
+  const index = pinecone.index('Henry-documents');
   const results = await index.query({
     vector: embedding.data[0].embedding,
     topK: 5,
@@ -109,7 +109,7 @@ Your RAG system should return documents in this format:
 ```javascript
 [
   {
-    content: "Jason's memory or experience text",
+    content: "Henry's memory or experience text",
     score: 0.85, // Relevance score (0-1)
     metadata: {
       source: "interview_2019",
@@ -124,7 +124,7 @@ Your RAG system should return documents in this format:
 
 ## 🎭 **Character-Specific RAG**
 
-For Jason's character, consider these document types:
+For Henry's character, consider these document types:
 
 ### **Core Memories:**
 - Protest experiences (2019)
@@ -177,7 +177,7 @@ async function semanticSearch(query) {
   const results = await vectorDB.query({
     vector: embedding,
     topK: 10,
-    filter: { character: 'jason' },
+    filter: { character: 'Henry' },
     includeMetadata: true,
   });
   

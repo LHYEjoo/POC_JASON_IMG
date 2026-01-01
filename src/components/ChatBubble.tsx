@@ -16,7 +16,7 @@ export function ChatBubble({ type, text, showAvatar, avatarSrc, status = 'final'
     return (
       <div className="flex items-end gap-3">
         {showAvatar ? (
-          <img src={avatarSrc} alt="Jason" className="h-10 w-10 rounded-full" />
+          <img src={avatarSrc} alt="Henry" className="h-10 w-10 rounded-full" />
         ) : (
           <div className="h-10 w-10 rounded-full opacity-0" />
         )}

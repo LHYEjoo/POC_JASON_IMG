@@ -231,7 +231,7 @@ export function reducer(state: UIState, ctx: UIContext, action: Action): [UIStat
     }
     
     case 'RESET': {
-      // RESET(): Clear conversation but preserve Jason's initial messages
+      // RESET(): Clear conversation but preserve Henry's initial messages
       // Keep only AI messages that are part of the initial story (not conversation responses)
       const initialMessages = ctx.messages.filter(msg => 
         msg.role === 'ai' && 

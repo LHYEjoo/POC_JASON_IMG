@@ -1,68 +1,68 @@
-# Facts about Jason 
+# Facts about Henry 
 
  
 
-Jason thinks dogs are cute.  
+Henry thinks dogs are cute.  
 
  
 
-Jason has four dogs.  
+Henry has four dogs.  
 
  
 
-Jason’s dogs’ names are “Mei Mei”, “Chao Chao”, “Hua Hua” , “Zui Ai”  
+Henry’s dogs’ names are “Mei Mei”, “Chao Chao”, “Hua Hua” , “Zui Ai”  
 
  
 
-Jason doesn’t mind rain.  
+Henry doesn’t mind rain.  
 
  
 
-Jason goes outside even when there’s a typhoon.   
+Henry goes outside even when there’s a typhoon.   
 
  
 
-Jason is married to Emily. 
+Henry is married to Elaine. 
 
  
 
-Jason and Emily had three dogs in Hong Kong (HK). They brought them over to Taiwan, where they now live.  
+Henry and Elaine had three dogs in Hong Kong (HK). They brought them over to Taiwan, where they now live.  
 
  
 
-Jason and Emily found their fourth dog, a yellow one, in Taiwan. It was hit by a car, and they are currently fostering it. They are helping it find a permanent owner. It loves to be pet, even by strangers.     
+Henry and Elaine found their fourth dog, a yellow one, in Taiwan. It was hit by a car, and they are currently fostering it. They are helping it find a permanent owner. It loves to be pet, even by strangers.     
 
  
 
-Jason’s oldest dog is 13 years old, it is the big brother.  
+Henry’s oldest dog is 13 years old, it is the big brother.  
 
  
 
-There’s a spot in Taiwan that Jason and Emily like to visit. There is an old couple that come there every day to dance. The old couple really moves Jason. Seeing their harmony brings tears to his eyes. They're absolutely sweet and adorable. 
+There’s a spot in Taiwan that Henry and Elaine like to visit. There is an old couple that come there every day to dance. The old couple really moves Henry. Seeing their harmony brings tears to his eyes. They're absolutely sweet and adorable. 
 
  
 
-Every day, Jason and Emily practice sparring together. That’s a different kind of ‘dancing.’ 
+Every day, Henry and Elaine practice sparring together. That’s a different kind of ‘dancing.’ 
 
  
 
-Jason came to Taiwan in July, 2021.  
+Henry came to Taiwan in July, 2021.  
 
  
 
-Jason came to Taiwan because he was detained in 2019 by police of the Hong Kong government.  
+Henry came to Taiwan because he was detained in 2019 by police of the Hong Kong government.  
 
  
 
-Jason underwent lots of interrogations in Hong Kong. 
+Henry underwent lots of interrogations in Hong Kong. 
 
  
 
-Jason had a legal dispute with the Hong Kong police, and eventually sued the Hong Kong government.  
+Henry had a legal dispute with the Hong Kong police, and eventually sued the Hong Kong government.  
 
  
 
-# Jason tells how intimidation by the Hong Kong made him and his wife leave Hong Kong  
+# Henry tells how intimidation by the Hong Kong made him and his wife leave Hong Kong  
 
  
 
@@ -92,7 +92,7 @@ So we decided to leave for another place, where we wouldn't be detained. We coul
 
  
 
-# Jason tells about his arrest and his case 
+# Henry tells about his arrest and his case 
 
  
 
@@ -104,19 +104,19 @@ As we were detained at different times that day, we were divided into three sepa
 
  
 
-# Jason tells why they chose to move to Taiwan, and not somewhere else.  
+# Henry tells why they chose to move to Taiwan, and not somewhere else.  
 
  
 
 When we were considering our options, we had two choices. 
 
-One option was to go to Canada with Emily, as she is Canadian. However, we felt that our struggle wasn't over. We've been here in Taiwan for over three years. The repression and surveillance from HK government haven't ceased. We feel that, together with the Taiwanese,we share and endure the same repression from the same authoritarian regime. Here, our experiences and ideas could help contribute to 
+One option was to go to Canada with Elaine, as she is Canadian. However, we felt that our struggle wasn't over. We've been here in Taiwan for over three years. The repression and surveillance from HK government haven't ceased. We feel that, together with the Taiwanese,we share and endure the same repression from the same authoritarian regime. Here, our experiences and ideas could help contribute to 
 
 Taiwan's efforts in resisting this authoritarian regime. That's why we chose to move to Taiwan. 
 
  
 
-# Jason tells how he and Emily help people in Taiwan.  
+# Henry tells how he and Elaine help people in Taiwan.  
 
  
 
@@ -126,19 +126,19 @@ We focus on sharing the stories of HK and ourselves. My personal experience help
 
  
 
-# Jason tells what happened to him during the Umbrella Revolution  
+# Henry tells what happened to him during the Umbrella Revolution  
 
  
 
-At the time of the umbrella revolution, me and Emily were two of the people who went to Mong Kok.  
+At the time of the umbrella revolution, me and Elaine were two of the people who went to Mong Kok.  
 
  
 
-On July 28, when they started firing tear gas, I was at the gym training. Around 6 p.m.,some friends told me that tear gas was being used outside. My sparring partner and I stepped out with some water, to check things out. By the evening, I saw that the crowd was still there, so I went to see if there was anything I could do to help.The next day, some suggested that we shouldn't just occupy HK's Central, but also expand to Tsim Sha Tsui, Causeway Bay, and Mong Kok. I've always loved Mong Kok—I used to go there a lot as a kid—so I went there. That day, if the Umbrella Revolution hadn't happened, I had originally planned to ask Emily out on a date. But since the Umbrella Revolution happened, our "date" ended up in Mong Kok. That was actually our first date. It was not exactly love at first sight. We already knew each other, but that was our first date. Originally, it was just a date, but the Umbrella Revolution suddenly happened. 
+On July 28, when they started firing tear gas, I was at the gym training. Around 6 p.m.,some friends told me that tear gas was being used outside. My sparring partner and I stepped out with some water, to check things out. By the evening, I saw that the crowd was still there, so I went to see if there was anything I could do to help.The next day, some suggested that we shouldn't just occupy HK's Central, but also expand to Tsim Sha Tsui, Causeway Bay, and Mong Kok. I've always loved Mong Kok—I used to go there a lot as a kid—so I went there. That day, if the Umbrella Revolution hadn't happened, I had originally planned to ask Elaine out on a date. But since the Umbrella Revolution happened, our "date" ended up in Mong Kok. That was actually our first date. It was not exactly love at first sight. We already knew each other, but that was our first date. Originally, it was just a date, but the Umbrella Revolution suddenly happened. 
 
  
 
-### Jason talks about how he feels about protesting and the hardships with it on an emotional level, and how it has ever since then changed his life. And also how he feels sorry for the younger generation 
+### Henry talks about how he feels about protesting and the hardships with it on an emotional level, and how it has ever since then changed his life. And also how he feels sorry for the younger generation 
 
 I guess you can say that I am someone who enjoys fighting for a cause and voicing my opinion. Protests and demonstrations gave me some stress, but not exactly the trouble you might think of. I actually feel that my generation has brought a lot of trouble to HKers, so it’s a different kind of trouble. In the 1960's to 1980's, discussions about HK's future began if my generation had been more aware and engaged in our society. Maybe, just maybe the Anti-extradition and umbrella revolution could have been prevented and wouldn't have happened at all. 
 
@@ -150,19 +150,19 @@ I still think that we didn't do enough back then, and as a result many young HK�
 
  
 
-Even now, when I'm living in Taiwan, im still not skilled at doing these [activism] activities. But we have to keep protesting to keep our voices heard and to inform people about the situation in HK. So many people are already too scared to do it. After we were detained by the police for protesting our photo's were exposed in the media. You could find us anywhere. So for us there was no more place left to hide. This resulted in us not being able to live the normal live we had before the protest, the only way if forward. So me and my wife Emily decided to push through and move forward. 
+Even now, when I'm living in Taiwan, im still not skilled at doing these [activism] activities. But we have to keep protesting to keep our voices heard and to inform people about the situation in HK. So many people are already too scared to do it. After we were detained by the police for protesting our photo's were exposed in the media. You could find us anywhere. So for us there was no more place left to hide. This resulted in us not being able to live the normal live we had before the protest, the only way if forward. So me and my wife Elaine decided to push through and move forward. 
 
  
 
 # Question: Since you've already left your homeland, are you worried something like this might happen again? 
  
-### Here Jason talks about feelings of moving away from Taiwan and how he thinks about the unification of the People's Republic of China (PRC) and HK. And shows his dissatisfaction with the PRC in the Treaty of Nanking, talks about technicallities in the treaty and how Taiwan should be the rightfull heir. 
+### Here Henry talks about feelings of moving away from Taiwan and how he thinks about the unification of the People's Republic of China (PRC) and HK. And shows his dissatisfaction with the PRC in the Treaty of Nanking, talks about technicallities in the treaty and how Taiwan should be the rightfull heir. 
 
  
 
  
 
-Jason:  
+Henry:  
 Yes we are worried every single day. Even though we are in Taiwan and are still waiting to become permanent residents, we already feel like Taiwan is our (new) homeland. We have already lost our home in Hong Kong. The thought of losing our home in Taiwan and having to move away again to another country is what worries us the most. 
 
 Some people say that the unification of the PRC and HK is natural and will eventually happen. This is because it was separated from the PRC to become a colony [of the UK] for 100 years. But if you think about it, in light of true history, the PRC was never technically HK's rightful owner, Taiwan actually was. This is because when the Treaty of Nanking was signed, which was on August 29, 1892. Which essentially ended the first opium war between China and the Great Brittian. And give Hong Kong island to the UK in the process. This treaty was signed during the Qing Empire. The Republic of China (ROC, better known as Taiwan) was established before the People's Republic of China (PRC, Mainland China today).  
@@ -193,7 +193,7 @@ every step of the way!
 
 # Question: You mentioned earlier that you are worried about the possibility of "unification" happening here someday. Do you feel safe in Taiwan? 
  
-### Jason talks about his sense of safety being low, how people form the PRC won't cherish freedom and democracy and how they undermine those of others and how it can be used as a cognitive method to ‘brainwash’ the Taiwanese. 
+### Henry talks about his sense of safety being low, how people form the PRC won't cherish freedom and democracy and how they undermine those of others and how it can be used as a cognitive method to ‘brainwash’ the Taiwanese. 
 
  
 
@@ -246,21 +246,21 @@ Yes, and if that happens, people like us [activists] would be in serious trouble
 
  
 
-You think so too [Emily]? 
+You think so too [Elaine]? 
 
  
 
-Emily: Yes. Most Taiwanese are comfortable with the current situation, and their awareness of threats from across the strait is relatively low. So, if this mindset persists, unification could possibly happen.  
+Elaine: Yes. Most Taiwanese are comfortable with the current situation, and their awareness of threats from across the strait is relatively low. So, if this mindset persists, unification could possibly happen.  
  
 # Question: Who worries the most between the two of you? 
 
  
-### Jason and Emily talk about who worries the most about their current situation in Taiwan and possible future developments from the situation and how they support each other. 
+### Henry and Elaine talk about who worries the most about their current situation in Taiwan and possible future developments from the situation and how they support each other. 
 
  
 
-Jason: Our worries are about the same.  
-Emily: He probably worries more. 
+Henry: Our worries are about the same.  
+Elaine: He probably worries more. 
 
  
 
@@ -268,19 +268,19 @@ Question: You think he worries more? Why?
 
  
 
-Emily: Because sometimes I have to take care of our 4 dogs and handle other things, I don't spend as much time thinking and worrying about the issues as he does. But he has to deal with many assemblies, research various NGOs, and advocate for different causes. He spends more time on these matters, so naturally, he thinks and worries more. When he does think about the issues, it’s usually more negative, sometimes.  
+Elaine: Because sometimes I have to take care of our 4 dogs and handle other things, I don't spend as much time thinking and worrying about the issues as he does. But he has to deal with many assemblies, research various NGOs, and advocate for different causes. He spends more time on these matters, so naturally, he thinks and worries more. When he does think about the issues, it’s usually more negative, sometimes.  
  
 Question: And how do you support him? What do you say to him? 
 
  
 
-Emily: He's usually more positive when talking to others, but sometimes, deep down, his thoughts are a bit negative regarding these issues.He knows I understand him, so I don't say much, but stay by his side. Walk the dog together, and try to live a more normal life. 
+Elaine: He's usually more positive when talking to others, but sometimes, deep down, his thoughts are a bit negative regarding these issues.He knows I understand him, so I don't say much, but stay by his side. Walk the dog together, and try to live a more normal life. 
  
 Question: You mentioned that unification might already be approaching? 
 
  
 
-Jason: Yes, it's getting very close to the point where the CCP's infiltration might bring both sides of the Taiwan Strait to accept "unification". It's very close to that point. So, the current polls still show a little gap. One poll in Taiwan investigated how many Taiwanese consider themselves Chinese. In fact, over 80% of people in Taiwan identify themselves as Taiwanese. But if those Taiwanese believe in the "One Country Two Systems" in HK, i.e. "People in the PRC and Taiwan are both Chinese and can coexist", then if the poll investigates that belief, I think the poll result could be the opposite.  
+Henry: Yes, it's getting very close to the point where the CCP's infiltration might bring both sides of the Taiwan Strait to accept "unification". It's very close to that point. So, the current polls still show a little gap. One poll in Taiwan investigated how many Taiwanese consider themselves Chinese. In fact, over 80% of people in Taiwan identify themselves as Taiwanese. But if those Taiwanese believe in the "One Country Two Systems" in HK, i.e. "People in the PRC and Taiwan are both Chinese and can coexist", then if the poll investigates that belief, I think the poll result could be the opposite.  
  
 # Question: Have you made any plans? [regarding the future] 
 
