@@ -188,7 +188,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                     rel="noopener noreferrer"
                     className="text-[#00ABFE] hover:underline"
                   >
-                    Hong Kong newlyweds acquitted of rioting charges
+                    Hong Kong newlyweds acquitted of rioting charges (HKFP)
                   </a>
                 </li>
                 <li className="text-sm text-gray-700">
@@ -201,34 +201,24 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                     rel="noopener noreferrer"
                     className="text-[#00ABFE] hover:underline"
                   >
-                    Henry and Elaine marriage
+                    Henry and Elaine marriage (HKFP)
                   </a>
                 </li>
                 <li className="text-sm text-gray-700">
                   <span className="font-medium">
                     {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
                   </span>{' '}
-                  Video interview met/with henry (not accessible for users)
+                  {language === 'nl' 
+                    ? 'Video interview met Henry (niet toegankelijk voor gebruikers)'
+                    : 'Video interview with Henry (not accessible for users)'}
                 </li>
                 <li className="text-sm text-gray-700">
                   <span className="font-medium">
                     {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
                   </span>{' '}
-                  Interview met/with Henry, (not accessible for users)
-                </li>
-                <li className="text-sm text-gray-600 italic mt-2">
                   {language === 'nl' 
-                    ? 'Als je geïnteresseerd bent in het bekijken van de originele bestanden, neem dan contact met ons op via '
-                    : 'If you are interested in looking into the original files please contact us at '}
-                  <a 
-                    href="mailto:L.Ye@vpro.nl" 
-                    className="text-[#00ABFE] hover:underline"
-                  >
-                    L.Ye@vpro.nl
-                  </a>
-                  {language === 'nl' 
-                    ? ' om toegang te vragen voor de bestanden en de reden.'
-                    : ' to request access for the files and reasoning.'}
+                    ? 'Interview met Henry (niet toegankelijk voor gebruikers)'
+                    : 'Interview with Henry (not accessible for users)'}
                 </li>
                 {/* Additional sources from questions */}
                 {sources.length > 0 && (
@@ -250,9 +240,37 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
           {/* AI Disclaimer */}
           <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">AI Disclaimer</h3>
-            <div className="bg-gray-50 rounded-[16px] p-4">
-              <DisclaimerInline />
-            </div>
+            <DisclaimerInline />
+          </div>
+
+          {/* Contact for original files */}
+          <div className="mb-8">
+            <p className="text-sm text-gray-600">
+              {language === 'nl' 
+                ? (
+                  <>
+                    Als je geïnteresseerd bent in het bekijken van de originele bestanden, neem dan contact met ons op via{' '}
+                    <a 
+                      href="mailto:L.Ye@vpro.nl" 
+                      className="text-[#00ABFE] hover:underline font-medium"
+                    >
+                      L.Ye@vpro.nl
+                    </a>
+                    {' '}om toegang te vragen voor de bestanden en de reden.
+                  </>
+                ) : (
+                  <>
+                    If you are interested in viewing the original files, please contact us at{' '}
+                    <a 
+                      href="mailto:L.Ye@vpro.nl" 
+                      className="text-[#00ABFE] hover:underline font-medium"
+                    >
+                      L.Ye@vpro.nl
+                    </a>
+                    {' '}to request access to the files and provide your reasoning.
+                  </>
+                )}
+            </p>
           </div>
         </div>
 

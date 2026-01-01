@@ -663,24 +663,27 @@ export default function DigitalShadow() {
         // eslint-disable-next-line no-console
         console.log('[DISPATCH] After debounce check, about to create asyncHandler', { textLength: text.length, textFull: text });
 
+        // Store text in a const to ensure it's captured correctly in the closure
+        const questionText = text;
+        
         // Use setTimeout to ensure the dispatch completes first
         const asyncHandler = async () => {
           // eslint-disable-next-line no-console
-          console.log('[RAG] asyncHandler called for:', text.slice(0, 50));
+          console.log('[RAG] asyncHandler called for:', questionText.slice(0, 50), 'fullLength:', questionText.length);
           
           // Ensure we have valid text
-          if (!text || text.trim().length === 0) {
+          if (!questionText || questionText.trim().length === 0) {
             // eslint-disable-next-line no-console
-            console.error('[RAG] ERROR: Empty text in asyncHandler!');
+            console.error('[RAG] ERROR: Empty text in asyncHandler!', { questionText });
             return;
           }
           
           // eslint-disable-next-line no-console
-          console.log('[RAG] Starting AI response for:', text.slice(0, 50));
+          console.log('[RAG] Starting AI response for:', questionText.slice(0, 50));
           dispatch({ type: 'AI_START', id: crypto.randomUUID() });
           
           // Detect the language of the user's question
-          const questionLang = detectQuestionLanguage(text);
+          const questionLang = detectQuestionLanguage(questionText);
           currentQuestionLangRef.current = questionLang; // Store for later use (e.g., image captions)
           // eslint-disable-next-line no-console
           console.log('[RAG] Detected question language:', questionLang);
@@ -690,7 +693,7 @@ export default function DigitalShadow() {
           let questionId: string | undefined = currentQuestionIdRef.current;
           
           // eslint-disable-next-line no-console
-          console.log('[RAG] Checking for questionId:', { questionId, refValue: currentQuestionIdRef.current, text: text.slice(0, 50) });
+          console.log('[RAG] Checking for questionId:', { questionId, refValue: currentQuestionIdRef.current, text: questionText.slice(0, 50) });
           
           // Clear the ref after using it
           if (questionId) {
@@ -702,7 +705,7 @@ export default function DigitalShadow() {
             // Use ref to ensure we have the latest value in setTimeout callback
             const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
             if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
-              const userText = text.trim();
+              const userText = questionText.trim();
               const userTextLower = userText.toLowerCase();
               
               // Try exact match first
@@ -875,13 +878,13 @@ export default function DigitalShadow() {
               
               // eslint-disable-next-line no-console
               console.log('[RAG] Question matching (text-based):', { 
-                userText: text.trim(), 
-                userTextLength: text.trim().length,
+                userText: questionText.trim(), 
+                userTextLength: questionText.trim().length,
                 questionId, 
                 availableQuestions: currentSuggestedQuestions.map(q => {
                   const qText = q.text.trim();
                   const qTextLower = qText.toLowerCase();
-                  const userTextLower = text.trim().toLowerCase();
+                  const userTextLower = questionText.trim().toLowerCase();
                   return {
                     id: q.id, 
                     text: qText.slice(0, 50),
@@ -1089,7 +1092,7 @@ export default function DigitalShadow() {
           // eslint-disable-next-line no-console
           console.log('[RAG] Starting normal RAG flow (no preprompts found or questionId not matched)');
           try {
-            const search = await fetchJSON('/api/search', { q: text, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
+            const search = await fetchJSON('/api/search', { q: questionText, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
             if (!search?.ok) {
               throw new Error(search?.error || 'search failed');
             }
@@ -1101,7 +1104,7 @@ export default function DigitalShadow() {
               const min = scores.length ? Math.min(...scores) : 0;
               // eslint-disable-next-line no-console
               console.log('[RAG]', {
-                query: text,
+                query: questionText,
                 matches: scores.length,
                 topScore: Number(top.toFixed(3)),
                 avgScore: Number(avg.toFixed(3)),
@@ -1114,7 +1117,7 @@ export default function DigitalShadow() {
             const hasEvidence = (search.chunks?.length ?? 0) > 0 && topScore >= (flags.RAG_MIN_SCORE ?? 0.75);
 
             // Heuristic: sensitive question detection
-            const qLower = text.toLowerCase();
+            const qLower = questionText.toLowerCase();
             const isSensitive =
               /\b(naam|name|locatie|location|adres|address|telefoon|phone|contact|identiteit|identity|waar woon|where do you live|wie ben je|who are you)\b/.test(qLower);
 
@@ -1164,7 +1167,7 @@ export default function DigitalShadow() {
               return;
             }
 
-            const messages = buildHenryRAGPrompt(text, search.chunks || [], questionLang);
+            const messages = buildHenryRAGPrompt(questionText, search.chunks || [], questionLang);
             const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-4o-mini', temperature: 0 });
             if (!answer?.ok) {
               throw new Error(answer?.error || 'answer failed');
@@ -1183,7 +1186,7 @@ export default function DigitalShadow() {
             // This preserves sentence boundaries for proper message splitting
             
             // Check if this prompt should have an image
-            const imageUrl = getImageForPrompt(text);
+            const imageUrl = getImageForPrompt(questionText);
             if (imageUrl) {
               // eslint-disable-next-line no-console
               console.log('[RAG] Prompt requires image:', imageUrl);
@@ -1337,7 +1340,7 @@ export default function DigitalShadow() {
           }
         };
         // eslint-disable-next-line no-console
-        console.log('[DISPATCH] Scheduling asyncHandler with setTimeout', { textLength: text.length, textPreview: text.slice(0, 50) });
+        console.log('[DISPATCH] Scheduling asyncHandler with setTimeout', { textLength: questionText.length, textPreview: questionText.slice(0, 50) });
         setTimeout(() => {
           // eslint-disable-next-line no-console
           console.log('[DISPATCH] setTimeout callback executing, calling asyncHandler');
