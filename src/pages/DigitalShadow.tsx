@@ -600,7 +600,7 @@ export default function DigitalShadow() {
         sttRef.current.start();
       } else if (action.type === 'ADD_USER' || action.type === 'RECOG_RESULT') {
         const text = action.type === 'ADD_USER' ? action.text : action.text;
-        const speechId = action.type === 'RECOG_RESULT' ? action.id : undefined;
+          const speechId = action.type === 'RECOG_RESULT' ? action.id : undefined;
 
         // Validate text - reject empty, placeholder, or garbage text
         const textLower = text.toLowerCase();
@@ -659,6 +659,9 @@ export default function DigitalShadow() {
         requestTimeoutRef.current = setTimeout(() => {
           lastRequestRef.current = '';
         }, 2000);
+
+        // eslint-disable-next-line no-console
+        console.log('[DISPATCH] After debounce check, about to create asyncHandler', { textLength: text.length, textFull: text });
 
         // Use setTimeout to ensure the dispatch completes first
         const asyncHandler = async () => {
