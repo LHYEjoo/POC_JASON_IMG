@@ -3,6 +3,12 @@ import DisclaimerInline from './DisclaimerInline';
 import { cn } from '../utils/cn';
 import { type Language } from '../config/prompt';
 
+interface Source {
+  documentId: string;
+  title: string;
+  sourceId: string | null;
+}
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -11,9 +17,10 @@ interface Props {
   language: Language;
   onLanguageChange: (lang: Language) => void;
   onReset: () => void;
+  sources: Source[];
 }
 
-export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset }: Props) {
+export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset, sources }: Props) {
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   // Close on escape key
@@ -161,6 +168,33 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 ? 'Kies de taal waarin Henry communiceert'
                 : 'Choose the language Henry communicates in'}
             </p>
+          </div>
+
+          {/* Sources */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {language === 'nl' ? 'Bronnen' : 'Sources'}
+            </h3>
+            {sources.length === 0 ? (
+              <p className="text-sm text-gray-600">
+                {language === 'nl' 
+                  ? 'Er zijn nog geen bronnen beschikbaar. Bronnen worden toegevoegd wanneer je vragen stelt aan Henry.'
+                  : 'No sources available yet. Sources will be added when you ask questions to Henry.'}
+              </p>
+            ) : (
+              <div className="bg-gray-50 rounded-[16px] p-4">
+                <ul className="space-y-2">
+                  {sources.map((source, index) => (
+                    <li key={source.documentId} className="text-sm text-gray-700">
+                      <span className="font-medium">
+                        {language === 'nl' ? `Bron ${index + 1}:` : `Source ${index + 1}:`}
+                      </span>{' '}
+                      {source.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* AI Disclaimer */}

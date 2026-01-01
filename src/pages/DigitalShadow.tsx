@@ -454,10 +454,10 @@ export default function DigitalShadow() {
 
   // Track the active speech-recognition message id (for interim/final linkage)
   const currentSpeechIdRef = React.useRef<string | null>(null);
-  // Track pending citations text to append once audio queue finishes
-  const pendingCitationsRef = React.useRef<string | null>(null);
   // Track pending image URL to add final message after image
   const pendingImageRef = React.useRef<string | null>(null);
+  // Track all unique sources across all API calls
+  const [allSources, setAllSources] = React.useState<Array<{ documentId: string; title: string; sourceId: string | null }>>([]);
   // Track the language of the current question for image captions
   const currentQuestionLangRef = React.useRef<Language>('nl');
   // Track the questionId when a suggested question is clicked
@@ -659,10 +659,9 @@ export default function DigitalShadow() {
         const asyncHandler = async () => {
           // eslint-disable-next-line no-console
           console.log('[RAG] asyncHandler called for:', text.slice(0, 50));
-          try {
-            // eslint-disable-next-line no-console
-            console.log('[RAG] Starting AI response for:', text.slice(0, 50));
-            dispatch({ type: 'AI_START', id: crypto.randomUUID() });
+          // eslint-disable-next-line no-console
+          console.log('[RAG] Starting AI response for:', text.slice(0, 50));
+          dispatch({ type: 'AI_START', id: crypto.randomUUID() });
           
           // Detect the language of the user's question
           const questionLang = detectQuestionLanguage(text);
@@ -992,10 +991,7 @@ export default function DigitalShadow() {
                   });
                 });
                 
-                // Add citations after audio finishes (handled by audio player callbacks)
-                if (preprompts.citations) {
-                  pendingCitationsRef.current = preprompts.citations;
-                }
+                // Citations are now handled in settings, not as messages
                 
                 prepromptsUsed = true; // Mark that we used preprompts
                 return; // Skip normal RAG flow
@@ -1039,10 +1035,7 @@ export default function DigitalShadow() {
                     }
                   }
                   
-                  // Add citations after audio finishes
-                  if (preprompts.citations) {
-                    pendingCitationsRef.current = preprompts.citations;
-                  }
+                  // Citations are now handled in settings, not as messages
                 })();
                 
                 // Return early to skip normal RAG flow - this MUST be here, not inside the IIFE!
@@ -1188,19 +1181,28 @@ export default function DigitalShadow() {
             // eslint-disable-next-line no-console
             console.log('[RAG] answer bursts', bursts);
             
-            // Prepare citations text (will be added after audio finishes)
+            // Accumulate unique sources for display in settings
             if (Array.isArray(search.sources) && search.sources.length > 0) {
-              const citationsText = formatGroupedCitations(search.sources, search.chunks || [], questionLang);
+              // Extract unique sources by documentId
+              setAllSources(prev => {
+                const existingIds = new Set(prev.map(s => s.documentId));
+                const newSources = search.sources
+                  .filter((s: any) => s.documentId && !existingIds.has(String(s.documentId)))
+                  .map((s: any) => ({
+                    documentId: String(s.documentId),
+                    title: s.title || s.sourceId || String(s.documentId),
+                    sourceId: s.sourceId || null,
+                  }));
+                return [...prev, ...newSources];
+              });
               // eslint-disable-next-line no-console
-              console.log('[RAG] Prepared citations', { 
+              console.log('[RAG] Accumulated sources', { 
                 sourcesCount: search.sources.length, 
                 chunksCount: search.chunks?.length || 0,
-                citationsText: citationsText.slice(0, 100) 
               });
-              pendingCitationsRef.current = citationsText;
             } else {
               // eslint-disable-next-line no-console
-              console.log('[RAG] No sources found for citations', { 
+              console.log('[RAG] No sources found', { 
                 sources: search.sources,
                 hasSources: Array.isArray(search.sources)
               });
@@ -1219,7 +1221,6 @@ export default function DigitalShadow() {
               
               // Capture values before setTimeout closures
               const hasImage = !!imageUrl;
-              const citationsText = pendingCitationsRef.current;
               
               // Show typing indicator
               dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
@@ -1254,29 +1255,12 @@ export default function DigitalShadow() {
                       }, 1500); // 1.5 second delay after image
                     }
                     
-                    // Add citations if any (after a short delay)
-                    if (citationsText) {
-                      setTimeout(() => {
-                        const citationsId = crypto.randomUUID();
-                        dispatchRef.current?.({
-                          type: 'ADD_AI_MESSAGE',
-                          id: citationsId,
-                          text: citationsText,
-                        });
-                        
-                        // Set UI back to idle after all messages are shown
-                        setTimeout(() => {
-                          dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                          startIdleTimerRef.current(60000);
-                        }, 500);
-                      }, hasImage ? 2000 : 1000);
-                    } else {
-                      // No citations, set UI to idle after a short delay
-                      setTimeout(() => {
-                        dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                        startIdleTimerRef.current(60000);
-                      }, 500);
-                    }
+                    // Citations are now displayed in settings, not as messages
+                    // Set UI back to idle after all messages are shown
+                    setTimeout(() => {
+                      dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                      startIdleTimerRef.current(60000);
+                    }, hasImage ? 2000 : 1000);
                   }
                 }, cumulativeDelay);
                 
@@ -1394,7 +1378,7 @@ export default function DigitalShadow() {
     },
     onAudioEnd: async (id: string, queueEmpty: boolean) => {
       // eslint-disable-next-line no-console
-      console.log('[AudioPlayer][onAudioEnd]', { id, queueEmpty, hasCitations: !!pendingCitationsRef.current, hasImage: !!pendingImageRef.current, citationsText: pendingCitationsRef.current?.slice(0, 50) });
+      console.log('[AudioPlayer][onAudioEnd]', { id, queueEmpty, hasImage: !!pendingImageRef.current });
       if (queueEmpty) {
         // If there's a pending image, add the final message with TTS
         if (pendingImageRef.current) {
@@ -1422,31 +1406,9 @@ export default function DigitalShadow() {
           }
         }
         
-        // Add citations as the last message (not read aloud)
-        if (pendingCitationsRef.current) {
-          const citationsText = pendingCitationsRef.current;
-          const citationsId = crypto.randomUUID();
-          // eslint-disable-next-line no-console
-          console.log('[AudioPlayer] Adding citations message', { id: citationsId, text: citationsText });
-          
-          // Store the citations text before clearing the ref
-          const citationsToAdd = citationsText;
-          pendingCitationsRef.current = null;
-          
-          // Use dispatch to add the citations message properly
-          // This will update the state synchronously
-          dispatchRef.current?.({
-            type: 'ADD_AI_MESSAGE',
-            id: citationsId,
-            text: citationsToAdd,
-          });
-          
-          // Verify the message was added
-          setTimeout(() => {
-            const currentCtx = ctxRef.current;
-            const addedMessage = currentCtx.messages.find((m: { id: string }) => m.id === citationsId);
-            // eslint-disable-next-line no-console
-            console.log('[AudioPlayer] Citations message added?', { 
+        // Sources are now displayed in settings, not as messages
+        // eslint-disable-next-line no-console
+        console.log('[AudioPlayer] Audio queue finished', { 
               found: !!addedMessage, 
               messageCount: currentCtx.messages.length,
               lastMessage: currentCtx.messages[currentCtx.messages.length - 1]?.text?.slice(0, 50)
@@ -1857,7 +1819,9 @@ export default function DigitalShadow() {
         }}
         onReset={() => {
           dispatchRef.current?.({ type: 'RESET' });
+          setAllSources([]); // Reset sources when conversation is reset
         }}
+        sources={allSources}
       />
 
     </div>
