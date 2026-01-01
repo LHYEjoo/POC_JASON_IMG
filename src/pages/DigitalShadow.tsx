@@ -1409,26 +1409,18 @@ export default function DigitalShadow() {
         // Sources are now displayed in settings, not as messages
         // eslint-disable-next-line no-console
         console.log('[AudioPlayer] Audio queue finished', { 
-              found: !!addedMessage, 
-              messageCount: currentCtx.messages.length,
-              lastMessage: currentCtx.messages[currentCtx.messages.length - 1]?.text?.slice(0, 50)
-            });
-          }, 100);
-          
-          // Use requestAnimationFrame to ensure the DOM has updated before setting to idle
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-              startIdleTimerRef.current(60000);
-            }, 50);
-          });
-        } else {
-          // eslint-disable-next-line no-console
-          console.log('[AudioPlayer] No citations to add');
-          dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-          startIdleTimerRef.current(60000);
-        }
-
+          messageCount: ctxRef.current.messages.length,
+          lastMessage: ctxRef.current.messages[ctxRef.current.messages.length - 1]?.text?.slice(0, 50)
+        });
+        
+        // Use requestAnimationFrame to ensure the DOM has updated before setting to idle
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+            startIdleTimerRef.current(60000);
+          }, 50);
+        });
+        
         // Fallback: Ensure UI goes to idle after a delay
         setTimeout(() => {
           if (uiRef.current !== 'idle') {
