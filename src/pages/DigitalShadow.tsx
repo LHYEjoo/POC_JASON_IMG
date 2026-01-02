@@ -691,14 +691,25 @@ export default function DigitalShadow() {
         // eslint-disable-next-line no-console
         console.log('[DISPATCH] questionText stored:', { length: questionText.length, preview: questionText.slice(0, 50) });
         
-        // eslint-disable-next-line no-console
-        console.log('[DISPATCH] Step 1: questionText stored successfully');
-        
         // Use setTimeout to ensure the dispatch completes first
         // eslint-disable-next-line no-console
-        console.log('[DISPATCH] Step 2: About to define asyncHandler function');
+        console.log('[DISPATCH] Step A: About to schedule setTimeout');
         
-        const asyncHandler = async () => {
+        // CRITICAL: Wrap in try-catch to catch any errors during function definition
+        try {
+          // eslint-disable-next-line no-console
+          console.log('[DISPATCH] Step B: Inside try block, scheduling setTimeout');
+          
+          setTimeout(() => {
+            // eslint-disable-next-line no-console
+            console.log('[DISPATCH] Step C: setTimeout callback executing');
+            
+            // eslint-disable-next-line no-console
+            console.log('[DISPATCH] Step D: About to define asyncHandler');
+            
+            const asyncHandler = async () => {
+              // eslint-disable-next-line no-console
+              console.log('[DISPATCH] Step E: asyncHandler function body executing');
           // eslint-disable-next-line no-console
           console.log('[RAG] asyncHandler called for:', questionText.slice(0, 50), 'fullLength:', questionText.length);
           
@@ -936,24 +947,25 @@ export default function DigitalShadow() {
           }
           
           // Try to get preprompts first
+          // Both Dutch (nl) and English (en) can have pregenerated preprompts
+          // Dutch: uses pregenerated audio if available
+          // English: always generates TTS on-the-fly (ignores audioUrl)
           let prepromptsUsed = false; // Flag to track if we used preprompts
           
           if (questionId) {
             // eslint-disable-next-line no-console
             console.log('[RAG] Looking up preprompts for questionId:', questionId, 'language:', questionLang);
-            let preprompts = getPreprompts(questionId, questionLang);
-            // eslint-disable-next-line no-console
-            console.log('[RAG] Initial preprompts lookup result:', { found: !!preprompts, burstsCount: preprompts?.bursts.length, hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl) });
             
-            // If preprompts not found for detected language, try the other language as fallback
-            if (!preprompts || preprompts.bursts.length === 0) {
-              const fallbackLang: QuestionLanguage = questionLang === 'nl' ? 'en' : 'nl';
-              preprompts = getPreprompts(questionId, fallbackLang);
-              // eslint-disable-next-line no-console
-              console.log('[RAG] Preprompts not found for', questionLang, ', trying fallback language:', fallbackLang, 'found:', !!preprompts, 'burstsCount:', preprompts?.bursts.length);
-            }
+            // Check preprompts for both Dutch and English
+            let preprompts = await getPreprompts(questionId, questionLang);
             // eslint-disable-next-line no-console
-            console.log('[RAG] Final preprompts lookup:', { questionId, questionLang, found: !!preprompts, burstsCount: preprompts?.bursts.length, hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl) });
+            console.log('[RAG] Preprompts lookup result:', { 
+              found: !!preprompts, 
+              burstsCount: preprompts?.bursts.length, 
+              hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl),
+              language: questionLang,
+              note: questionLang === 'en' ? 'English: will generate TTS on-the-fly' : 'Dutch: will use pregenerated audio if available'
+            });
             
             if (preprompts && preprompts.bursts.length > 0) {
               prepromptsUsed = true; // Mark that we're using preprompts
@@ -1046,61 +1058,162 @@ export default function DigitalShadow() {
                 prepromptsUsed = true; // Mark that we used preprompts
                 return; // Skip normal RAG flow
               } else {
-                // Preprompts exist but audio URLs are missing - generate TTS for bursts
+                // Preprompts exist but audio URLs are missing - generate TTS on-the-fly for missing ones
                 // eslint-disable-next-line no-console
-                console.log('[RAG] Preprompts found but audio URLs missing, generating TTS...');
+                console.log('[RAG] Preprompts found but some audio URLs missing, generating TTS on-the-fly...');
                 
-                const burstPromises = preprompts.bursts.map(async (burst, index) => {
-                  try {
-                    const { audioUrl } = await postTTS(burst.text);
-                    return { success: true, index, chunk: burst.text, audioUrl };
-                  } catch (err) {
+                // Check which bursts have audio URLs and which don't
+                const burstsWithAudio = preprompts.bursts.filter((b) => b.audioUrl);
+                const burstsWithoutAudio = preprompts.bursts.filter((b) => !b.audioUrl);
+                
+                // eslint-disable-next-line no-console
+                console.log('[RAG] Audio status:', { withAudio: burstsWithAudio.length, withoutAudio: burstsWithoutAudio.length });
+                
+                // If audio is disabled, show text with natural typing delay (same as when audio URLs exist)
+                if (!audioEnabledRef.current) {
+                  const hasImage = !!preprompts.imageUrl;
+                  const citationsText = preprompts.citations;
+                  
+                  // Show typing indicator
+                  dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+                  
+                  // Add messages with delays to simulate natural texting
+                  let cumulativeDelay = 800;
+                  
+                  preprompts.bursts.forEach((burst, index) => {
+                    setTimeout(() => {
+                      const msgId = crypto.randomUUID();
+                      const isLastBurst = index === preprompts.bursts.length - 1;
+                      const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                      dispatchRef.current?.({ 
+                        type: 'ADD_AI_MESSAGE', 
+                        id: msgId, 
+                        text: burst.text,
+                        imageUrl: burstImageUrl
+                      });
+                      
+                      // After last burst, add citations if any
+                      if (isLastBurst) {
+                        if (citationsText) {
+                          setTimeout(() => {
+                            const citationsId = crypto.randomUUID();
+                            dispatchRef.current?.({
+                              type: 'ADD_AI_MESSAGE',
+                              id: citationsId,
+                              text: citationsText,
+                            });
+                            
+                            setTimeout(() => {
+                              dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                              startIdleTimerRef.current(60000);
+                            }, 500);
+                          }, hasImage ? 2000 : 1000);
+                        } else {
+                          setTimeout(() => {
+                            dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                            startIdleTimerRef.current(60000);
+                          }, 500);
+                        }
+                      }
+                    }, cumulativeDelay);
+                    
+                    // Calculate delay for next message
+                    if (index < preprompts.bursts.length - 1) {
+                      const nextBurst = preprompts.bursts[index + 1];
+                      cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
+                    }
+                  });
+                  
+                  prepromptsUsed = true; // Mark that we used preprompts
+                  return; // Skip normal RAG flow
+                }
+                
+                // Audio enabled - mix pregenerated audio with on-the-fly TTS for missing bursts
+                // First, enqueue bursts that already have audio URLs
+                for (let i = 0; i < preprompts.bursts.length; i++) {
+                  const burst = preprompts.bursts[i];
+                  if (burst.audioUrl) {
+                    const msgId = crypto.randomUUID();
+                    const isLastBurst = i === preprompts.bursts.length - 1;
+                    const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
                     // eslint-disable-next-line no-console
-                    console.error('[RAG][TTS] preprompt burst TTS failed', { index, err });
-                    return { success: false, index };
+                    console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                    audioPlayerRef.current?.enqueue({ 
+                      id: msgId, 
+                      text: burst.text, 
+                      url: burst.audioUrl,
+                      imageUrl: burstImageUrl
+                    });
                   }
-                });
+                }
                 
-                // Enqueue bursts sequentially in order
-                (async () => {
-                  for (let i = 0; i < burstPromises.length; i++) {
+                // Then, generate TTS on-the-fly for bursts without audio URLs
+                if (burstsWithoutAudio.length > 0) {
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG][PREPROMPT] Generating TTS for', burstsWithoutAudio.length, 'missing bursts');
+                  
+                  const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
                     try {
-                      const result = await burstPromises[i];
-                      if (result.success && result.chunk && result.audioUrl) {
+                      const { audioUrl } = await postTTS(burst.text);
+                      return { success: true, burst, originalIndex, audioUrl };
+                    } catch (err) {
+                      // eslint-disable-next-line no-console
+                      console.error('[RAG][TTS] preprompt burst TTS failed', { originalIndex, err });
+                      return { success: false, burst, originalIndex };
+                    }
+                  });
+                  
+                  // Wait for TTS and enqueue
+                  try {
+                    const results = await Promise.all(ttsPromises);
+                    for (const result of results) {
+                      if (result.success && result.audioUrl) {
+                        // Find the original index in the full bursts array
+                        const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
                         const msgId = crypto.randomUUID();
-                        const isLastBurst = i === preprompts.bursts.length - 1;
+                        const isLastBurst = originalIndex === preprompts.bursts.length - 1;
                         const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
                         // eslint-disable-next-line no-console
-                        console.log('[RAG][PREPROMPT][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: burstImageUrl });
+                        console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, text: result.burst.text.slice(0, 30), audioUrl: result.audioUrl });
                         audioPlayerRef.current?.enqueue({ 
                           id: msgId, 
-                          text: result.chunk, 
+                          text: result.burst.text, 
                           url: result.audioUrl,
                           imageUrl: burstImageUrl
                         });
+                      } else {
+                        // If TTS failed, show as text message
+                        const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
+                        const msgId = crypto.randomUUID();
+                        const isLastBurst = originalIndex === preprompts.bursts.length - 1;
+                        const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                        // eslint-disable-next-line no-console
+                        console.log('[RAG][PREPROMPT][TTS] TTS failed, showing as text message', { index: originalIndex });
+                        dispatchRef.current?.({ 
+                          type: 'ADD_AI_MESSAGE', 
+                          id: msgId, 
+                          text: result.burst.text,
+                          imageUrl: burstImageUrl
+                        });
                       }
-                    } catch (err) {
-                      // eslint-disable-next-line no-console
-                      console.error('[RAG][PREPROMPT][TTS] Failed to process burst', { index: i, err });
                     }
+                  } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('[RAG][PREPROMPT] Error generating TTS for missing bursts:', err);
                   }
-                  
-                  // Citations are now handled in settings, not as messages
-                })();
+                }
                 
-                // Return early to skip normal RAG flow - this MUST be here, not inside the IIFE!
-                prepromptsUsed = true; // Mark that we used preprompts
+                prepromptsUsed = true;
                 return; // Skip normal RAG flow
               }
             } else {
               // eslint-disable-next-line no-console
-              console.log('[RAG] Preprompts not found for questionId:', questionId, 'language:', questionLang, 'or no bursts');
-              // If questionId exists but preprompts don't exist for this language, fall through to generate
-              // This allows generation when preprompts aren't available for the detected language
+              console.log('[RAG] Preprompts not found for questionId:', questionId, 'language:', questionLang, ', falling through to RAG');
+              // Fall through to RAG generation
             }
           } else {
             // eslint-disable-next-line no-console
-            console.log('[RAG] No questionId found, using normal RAG flow');
+            console.log('[RAG] No questionId found (unique question), using normal RAG flow');
           }
           
           // CRITICAL: If we found preprompts and used them, we should have returned already
@@ -1369,14 +1482,11 @@ export default function DigitalShadow() {
             console.error('[RAG] Error in asyncHandler:', e);
             setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
           }
-          };
-          
-          // eslint-disable-next-line no-console
-          console.log('[DISPATCH] Step 3: asyncHandler function defined successfully');
-          
-          setTimeout(() => {
+            };
+            
             // eslint-disable-next-line no-console
-            console.log('[DISPATCH] setTimeout executing, calling asyncHandler');
+            console.log('[DISPATCH] Step F: asyncHandler defined, calling it now');
+            
             asyncHandler().catch((err: any) => {
               // eslint-disable-next-line no-console
               console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
@@ -1384,6 +1494,15 @@ export default function DigitalShadow() {
               setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
             });
           }, 0);
+          
+          // eslint-disable-next-line no-console
+          console.log('[DISPATCH] Step G: setTimeout scheduled successfully');
+        } catch (err: any) {
+          // eslint-disable-next-line no-console
+          console.error('[DISPATCH] FATAL ERROR scheduling asyncHandler:', err);
+          console.error('[DISPATCH] Error stack:', err?.stack);
+          setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
+        }
       }
     }
   }, []);

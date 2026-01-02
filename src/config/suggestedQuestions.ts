@@ -18,7 +18,7 @@ export type SuggestedQuestion = {
   preprompts?: Partial<Record<Language, Preprompts>>; // Pre-generated answers with bursts (optional per language)
 };
 
-const QUESTION_POOL_RAW: SuggestedQuestion[] = [
+export const QUESTION_POOL_RAW: SuggestedQuestion[] = [
   {
     id: 'taiwan-domestic-matter',
     text: {
@@ -32,6 +32,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'In Taiwan zie ik dezelfde tekenen van infiltratie en druk die we in Hongkong hebben ervaren' },
           { text: 'De CCP probeert de democratie te ondermijnen en de vrijheid van de mensen te beperken, wat me herinnert aan de situatie in HK' },
           { text: 'Het gevoel dat onze vrijheid in gevaar is, maakt me erg bezorgd' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'In Taiwan I see the same signs of infiltration and pressure we experienced in Hong Kong' },
+          { text: 'The CCP is trying to undermine democracy and limit people\'s freedom, which reminds me of the situation in HK' },
+          { text: 'The feeling that our freedom is at risk makes me very worried' },
         ],
       },
     },
@@ -51,6 +58,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Voor mij is het idee van hereniging nu een bedreiging voor de vrijheid die we nog hebben' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'After what happened in Hong Kong, I no longer believe in \'peaceful reunification\'' },
+          { text: 'It\'s clear the PRC isn\'t sincere in their promises and they suppress people\'s democracy and freedoms' },
+          { text: 'For me, the idea of reunification is now a threat to the freedom we still have' },
+        ],
+      },
     },
   },
   {
@@ -66,6 +80,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Angst en afschrikking zijn cruciaal in China\'s strategie richting Taiwan' },
           { text: 'De CCP probeert de Taiwanese bevolking te beïnvloeden door middel van culturele infiltratie en het verspreiden van ideeën die democratie ondermijnen' },
           { text: 'Dit creëert een gevoel van onveiligheid en kan leiden tot acceptatie van unificatie, wat voor activisten zoals ik ernstige gevolgen zou hebben' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'Fear and deterrence are crucial in China\'s strategy towards Taiwan' },
+          { text: 'The CCP tries to influence the Taiwanese population through cultural infiltration and spreading ideas that undermine democracy' },
+          { text: 'This creates a feeling of insecurity and can lead to acceptance of unification, which would have serious consequences for activists like me' },
         ],
       },
     },
@@ -85,6 +106,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Het gevoel van onveiligheid is hier ook laag, ondanks de vrijheid om onze meningen te uiten' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'Yes, the pressure we experienced in Hong Kong is also felt in Taiwan' },
+          { text: 'The stories and narratives of the CCP are present and influence how people think' },
+          { text: 'The feeling of insecurity is also low here, despite the freedom to express our opinions' },
+        ],
+      },
     },
   },
   {
@@ -100,6 +128,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Ik denk dat de wereld nog steeds dezelfde onderschatting toont' },
           { text: 'De situatie in Taiwan lijkt op die van Hongkong, waar de dreiging van de CCP vaak niet serieus wordt genomen' },
           { text: 'Mensen beseffen niet hoe snel dingen kunnen veranderen en hoe kwetsbaar onze vrijheden zijn' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'I think the world still shows the same underestimation' },
+          { text: 'The situation in Taiwan is similar to Hong Kong, where the CCP threat is often not taken seriously' },
+          { text: 'People don\'t realize how quickly things can change and how vulnerable our freedoms are' },
         ],
       },
     },
@@ -119,6 +154,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Deze tactieken zijn al zichtbaar in de media en de publieke opinie hier' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'In Hong Kong we saw how the CCP used cultural infiltration to undermine democratic values' },
+          { text: 'The pressure on Taiwan is similar, with attempts to blur Taiwanese identity and make people believe unification with the PRC isn\'t so bad' },
+          { text: 'These tactics are already visible in the media and public opinion here' },
+        ],
+      },
     },
   },
   {
@@ -134,6 +176,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Ik merk het vooral in gesprekken met anderen, waar mensen soms terughoudend zijn om hun mening te delen uit angst voor repercussies' },
           { text: 'Online zie ik desinformatie die de situatie in Hong Kong en Taiwan verdraait, wat ons gevoel van veiligheid verder ondermijnt' },
           { text: 'Op straat voel ik soms de blikken van onbekenden, wat me herinnert aan de constante dreiging van surveillance' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'I notice it especially in conversations with others, where people are sometimes hesitant to share their opinions out of fear of repercussions' },
+          { text: 'Online I see disinformation that distorts the situation in Hong Kong and Taiwan, which further undermines our sense of security' },
+          { text: 'On the street I sometimes feel the stares of strangers, which reminds me of the constant threat of surveillance' },
         ],
       },
     },
@@ -153,6 +202,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Elke dag voel ik de druk en de angst voor wat er kan komen' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'Yes, that awareness definitely changes how safe I feel' },
+          { text: 'Taiwan\'s vulnerability makes me worried about the future and the possibility of unification with the PRC' },
+          { text: 'Every day I feel the pressure and fear of what might come' },
+        ],
+      },
     },
   },
   {
@@ -168,6 +224,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'De angstverhalen die het meest aanslaan, zijn vaak gerelateerd aan de ondermijning van vrijheid en democratie' },
           { text: 'Mensen vrezen dat de invloed van de PRC ook in Taiwan kan leiden tot chaos en een gebrek aan basisvoorzieningen' },
           { text: 'Dit creëert een gevoel van onveiligheid en wanhoop onder de bevolking' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'The fear stories that hit hardest are often related to the undermining of freedom and democracy' },
+          { text: 'People fear that PRC influence in Taiwan could also lead to chaos and lack of basic services' },
+          { text: 'This creates a feeling of insecurity and despair among the population' },
         ],
       },
     },
@@ -187,6 +250,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'We voelen ons hier niet echt veilig, ondanks de voordelen' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'The chip industry makes Taiwan economically indispensable, which can be both protection and a reason to fear' },
+          { text: 'On one hand it provides economic stability, but on the other it can also attract PRC attention, which could put us in danger' },
+          { text: 'We don\'t really feel safe here, despite the benefits' },
+        ],
+      },
     },
   },
   {
@@ -202,6 +272,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Ik zie het als een manier om vrijheid en democratie te ondermijnen' },
           { text: 'De CCP gebruikt deze retoriek om hun controle te rechtvaardigen en de rechten van mensen te schenden' },
           { text: 'Het is belangrijk dat de wereld deze tactieken herkent en zich verzet tegen onderdrukking' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'I see it as a way to undermine freedom and democracy' },
+          { text: 'The CCP uses this rhetoric to justify their control and violate people\'s rights' },
+          { text: 'It\'s important the world recognizes these tactics and resists oppression' },
         ],
       },
     },
@@ -221,6 +298,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'We moeten blijven spreken, zelfs vanuit de schaduw, om hoop te behouden voor Hong Kong' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'Activism means fighting for justice and freedom to me, even if it\'s sometimes dangerous' },
+          { text: 'Silence can be safer, but it loses the essence of our struggle' },
+          { text: 'We must keep speaking, even from the shadows, to maintain hope for Hong Kong' },
+        ],
+      },
     },
   },
   {
@@ -236,6 +320,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Het voelt als een moeilijke balans' },
           { text: 'Aan de ene kant wil ik doorgaan met de strijd voor democratie, maar aan de andere kant is de situatie hier in Taiwan veel veiliger' },
           { text: 'Het is pijnlijk om te zien dat we niet dezelfde massa\'s hebben, maar ik hoop dat we op een andere manier impact kunnen maken' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'It feels like a difficult balance' },
+          { text: 'On one hand I want to continue the fight for democracy, but on the other the situation here in Taiwan is much safer' },
+          { text: 'It\'s painful to see we don\'t have the same masses, but I hope we can make an impact in another way' },
         ],
       },
     },
@@ -255,6 +346,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'We willen niet opnieuw die ervaring van vertrek doormaken' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'I\'ve had to say goodbye to that idea' },
+          { text: 'Returning to Hong Kong isn\'t possible for us, that hurts' },
+          { text: 'We don\'t want to go through that experience of leaving again' },
+        ],
+      },
     },
   },
   {
@@ -269,6 +367,12 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
         bursts: [
           { text: 'Ik mis mijn vrienden en familie in Hong Kong en voel me verantwoordelijk voor hun veiligheid' },
           { text: 'Toch geloof ik dat mijn strijd voor vrijheid en democratie belangrijker is, ook al is het moeilijk om die keuze te maken' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'I miss my friends and family in Hong Kong and feel responsible for their safety' },
+          { text: 'Still I believe my fight for freedom and democracy is more important, even if it\'s hard to make that choice' },
         ],
       },
     },
@@ -288,6 +392,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Het blijft emotioneel moeilijk, maar ik moet verder gaan voor mijn eigen toekomst en die van mijn vrouw' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'It\'s been a heavy decision to cut contact with my parents' },
+          { text: 'Every day I feel the pain of that choice, but I know it protects their safety' },
+          { text: 'It remains emotionally difficult, but I must move forward for my own future and my wife\'s' },
+        ],
+      },
     },
   },
   {
@@ -303,6 +414,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Ik besefte dat vrijheid ook verlies betekent toen ik mijn thuisland Hong Kong moest verlaten' },
           { text: 'Het was een pijnlijke realisatie dat de rechten en vrijheden die ik ooit had, nu onbereikbaar zijn' },
           { text: 'De prijs voor vrijheid is soms het opgeven van alles wat je kent en liefhebt' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'I realized freedom also means loss when I had to leave my homeland Hong Kong' },
+          { text: 'It was a painful realization that the rights and freedoms I once had are now unreachable' },
+          { text: 'The price of freedom is sometimes giving up everything you know and love' },
         ],
       },
     },
@@ -322,6 +440,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Het is zwaar, maar samen kunnen we het beter aan' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'Our shared fear has brought us closer together' },
+          { text: 'We understand each other\'s concerns and support each other in this difficult time' },
+          { text: 'It\'s heavy, but together we can handle it better' },
+        ],
+      },
     },
   },
   {
@@ -337,6 +462,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Ja, ik herken de dreiging' },
           { text: 'De tactieken van de CCP zijn vergelijkbaar met wat we in Hongkong hebben meegemaakt' },
           { text: 'Het maakt me bang voor de toekomst van Taiwan en de veiligheid van activisten zoals wij' },
+        ],
+      },
+      en: {
+        bursts: [
+          { text: 'Yes, I recognize the threat' },
+          { text: 'The CCP\'s tactics are similar to what we experienced in Hong Kong' },
+          { text: 'It makes me afraid for Taiwan\'s future and the safety of activists like us' },
         ],
       },
     },
@@ -356,6 +488,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Maar fysiek voel ik me niet echt veilig, omdat de druk van de PRC en hun ideeën ook hier aanwezig zijn' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'My sense of safety here is quite low' },
+          { text: 'The only safety we experience comes from the freedom to express our opinions without persecution' },
+          { text: 'But physically I don\'t really feel safe, because the pressure from the PRC and their ideas are also present here' },
+        ],
+      },
     },
   },
   {
@@ -373,6 +512,13 @@ const QUESTION_POOL_RAW: SuggestedQuestion[] = [
           { text: 'Ik zou de Taiwanezen willen meegeven om waakzaam te zijn en de waarde van vrijheid en democratie te koesteren' },
         ],
       },
+      en: {
+        bursts: [
+          { text: 'I would want to tell the Taiwanese to stay vigilant and cherish the value of freedom and democracy' },
+          { text: 'Don\'t take your freedoms for granted, because they can disappear faster than you think' },
+          { text: 'Learn from what happened in Hong Kong and protect what you have while you still can' },
+        ],
+      },
     },
   },
 ];
@@ -387,10 +533,62 @@ export const getQuestionPool = (lang: Language): Array<{ id: string; text: strin
 };
 
 // Get preprompts for a specific question and language
-export const getPreprompts = (questionId: string, lang: Language): Preprompts | null => {
+// Checks Supabase for both Dutch (nl) and English (en) preprompts
+// Dutch: uses pregenerated audio if available
+// English: always generates TTS on-the-fly (ignores audioUrl even if present)
+export const getPreprompts = async (questionId: string, lang: Language): Promise<Preprompts | null> => {
+  // Check Supabase for preprompts (both Dutch and English)
+  try {
+    const env: any = typeof window !== 'undefined' ? import.meta.env : {};
+    const supabaseUrl = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      
+      const { data, error } = await supabase
+        .from('suggested_questions_preprompts')
+        .select('*')
+        .eq('question_id', questionId)
+        .eq('language', lang)
+        .single();
+      
+      if (!error && data && data.bursts && data.bursts.length > 0) {
+        // Convert database format to Preprompts format
+        // For English, always set audioUrl to undefined to force TTS on-the-fly
+        return {
+          bursts: data.bursts.map((burst: any) => ({
+            text: burst.text,
+            audioUrl: lang === 'nl' ? (burst.audioUrl || undefined) : undefined, // English always undefined
+          })),
+          imageUrl: data.image_url || undefined,
+          citations: data.citations || undefined,
+        };
+      }
+    }
+  } catch (err) {
+    // If Supabase fails, fall back to local
+    console.warn('[getPreprompts] Supabase lookup failed, using local fallback:', err);
+  }
+  
+  // Fallback to local QUESTION_POOL_RAW
   const question = QUESTION_POOL_RAW.find((q) => q.id === questionId);
-  if (!question || !question.preprompts) return null;
-  return question.preprompts[lang] || null;
+  if (question && question.preprompts) {
+    const localPreprompts = question.preprompts[lang];
+    if (localPreprompts) {
+      // For English, always remove audioUrl to force TTS on-the-fly
+      if (lang === 'en') {
+        return {
+          ...localPreprompts,
+          bursts: localPreprompts.bursts.map(b => ({ text: b.text, audioUrl: undefined })),
+        };
+      }
+      return localPreprompts;
+    }
+  }
+  
+  return null;
 };
 
 // Legacy export for backwards compatibility

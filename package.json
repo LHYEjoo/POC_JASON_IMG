@@ -9,7 +9,13 @@
     "preview": "vite preview --port 3000",
     "ingest": "tsx scripts/ingest.ts",
     "clear-chunks": "tsx scripts/clear-chunks.ts",
-    "reingest": "npm run clear-chunks && npm run ingest"
+    "reingest": "npm run clear-chunks && npm run ingest",
+    "generate-preprompt-audio": "tsx scripts/generate-preprompt-audio.ts",
+    "generate-complete-answers": "tsx scripts/generate-complete-answers.ts",
+    "migrate-preprompts": "tsx scripts/migrate-preprompts-to-db.ts",
+    "create-storage-folders": "tsx scripts/create-storage-folders.ts",
+    "update-audio-urls": "tsx scripts/update-audio-urls.ts",
+    "list-questions": "tsx scripts/list-questions.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.75.0",
