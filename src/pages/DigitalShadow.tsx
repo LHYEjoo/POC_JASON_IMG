@@ -1493,10 +1493,10 @@ export default function DigitalShadow() {
             console.error('[DISPATCH] Error stack:', err?.stack);
             setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
           });
-        }, 0);
           
           // eslint-disable-next-line no-console
           console.log('[DISPATCH] Step G: setTimeout scheduled successfully');
+        }, 0);
         } catch (err: any) {
           // eslint-disable-next-line no-console
           console.error('[DISPATCH] FATAL ERROR scheduling asyncHandler:', err);
