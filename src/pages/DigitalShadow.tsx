@@ -1484,16 +1484,16 @@ export default function DigitalShadow() {
           }
             };
             
+          // eslint-disable-next-line no-console
+          console.log('[DISPATCH] Step F: asyncHandler defined, calling it now');
+          
+          asyncHandler().catch((err: any) => {
             // eslint-disable-next-line no-console
-            console.log('[DISPATCH] Step F: asyncHandler defined, calling it now');
-            
-            asyncHandler().catch((err: any) => {
-              // eslint-disable-next-line no-console
-              console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
-              console.error('[DISPATCH] Error stack:', err?.stack);
-              setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
-            });
-          }, 0);
+            console.error('[DISPATCH] Unhandled error in asyncHandler:', err);
+            console.error('[DISPATCH] Error stack:', err?.stack);
+            setToast(languageRef.current === 'nl' ? 'Fout bij verwerken vraag' : 'Error processing question');
+          });
+        }, 0);
           
           // eslint-disable-next-line no-console
           console.log('[DISPATCH] Step G: setTimeout scheduled successfully');
