@@ -274,7 +274,10 @@ function removeTrailingPeriods(text: string): string {
     .trim();
 }
 
-function splitIntoBursts(text: string, maxBursts = 3): string[] {
+// Return type: both display text (without trailing periods) and TTS text (with punctuation)
+type BurstPair = { display: string; tts: string };
+
+function splitIntoBursts(text: string, maxBursts = 3): BurstPair[] {
   // First split into sentences based on punctuation (before removing periods)
   // This preserves sentence boundaries even after we remove periods
   const normalizedText = text.replace(/\s+/g, ' ').trim();
@@ -284,10 +287,17 @@ function splitIntoBursts(text: string, maxBursts = 3): string[] {
   
   // Split on sentence-ending punctuation followed by space or end of string
   // Use a simpler regex that works more reliably
-  let sentences = normalizedText
-    .split(/[\.\?\!]+(\s+|$)/) // Split on periods/question marks/exclamation marks (one or more) followed by space or end
-    .map(s => s.trim())
-    .filter(s => s.length > 0 && !/^[\.\?\!\s]+$/.test(s)); // Filter out empty or only punctuation
+  // We need to preserve the punctuation, so we'll reconstruct sentences with their punctuation
+  const sentenceMatches = normalizedText.match(/([^.!?]+[.!?]+)/g) || [];
+  let sentences: string[] = [];
+  
+  if (sentenceMatches.length > 0) {
+    // We have sentences with punctuation
+    sentences = sentenceMatches.map(s => s.trim()).filter(s => s.length > 0);
+  } else {
+    // No sentence boundaries found, try other methods
+    sentences = [normalizedText];
+  }
   
   // eslint-disable-next-line no-console
   console.log('[splitIntoBursts] After punctuation split:', sentences.length, 'sentences:', sentences);
@@ -300,7 +310,15 @@ function splitIntoBursts(text: string, maxBursts = 3): string[] {
     if (singleSentence.length > 100) {
       const commaSplit = singleSentence.split(/,\s+/).map(s => s.trim()).filter(Boolean);
       if (commaSplit.length > 1) {
-        sentences = commaSplit;
+        // Reconstruct with commas
+        sentences = [];
+        for (let i = 0; i < commaSplit.length; i++) {
+          if (i < commaSplit.length - 1) {
+            sentences.push(commaSplit[i] + ',');
+          } else {
+            sentences.push(commaSplit[i]);
+          }
+        }
         // eslint-disable-next-line no-console
         console.log('[splitIntoBursts] Using comma split:', sentences);
       } else {
@@ -322,26 +340,35 @@ function splitIntoBursts(text: string, maxBursts = 3): string[] {
     }
   }
   
-  // Now remove trailing periods from each sentence for texting-like behavior
-  const cleanedSentences = sentences.map(s => removeTrailingPeriods(s));
+  // Create pairs: original (with punctuation) for TTS, cleaned (without trailing periods) for display
+  const sentencePairs: BurstPair[] = sentences.map(s => ({
+    tts: s, // Keep original with punctuation for TTS
+    display: removeTrailingPeriods(s) // Remove trailing periods for display
+  }));
   
   // eslint-disable-next-line no-console
-  console.log('[splitIntoBursts] Cleaned sentences:', cleanedSentences);
+  console.log('[splitIntoBursts] Sentence pairs:', sentencePairs.map(p => ({ display: p.display.slice(0, 30), tts: p.tts.slice(0, 30) })));
   
-  if (cleanedSentences.length <= maxBursts) {
+  if (sentencePairs.length <= maxBursts) {
     // eslint-disable-next-line no-console
-    console.log('[splitIntoBursts] Returning', cleanedSentences.length, 'sentences (<= maxBursts)');
-    return cleanedSentences;
+    console.log('[splitIntoBursts] Returning', sentencePairs.length, 'sentences (<= maxBursts)');
+    return sentencePairs;
   }
   
   // Group sentences evenly into maxBursts chunks
-  const groups: string[][] = Array.from({ length: maxBursts }, () => []);
-  cleanedSentences.forEach((s, i) => {
+  const groups: BurstPair[][] = Array.from({ length: maxBursts }, () => []);
+  sentencePairs.forEach((s, i) => {
     groups[Math.min(i, maxBursts - 1)].push(s);
   });
-  const result = groups.map(g => g.join(' ')).filter(Boolean);
+  
+  // Combine grouped sentences: join TTS versions and display versions separately
+  const result = groups.map(g => ({
+    tts: g.map(p => p.tts).join(' '),
+    display: g.map(p => p.display).join(' ')
+  })).filter(g => g.display.length > 0);
+  
   // eslint-disable-next-line no-console
-  console.log('[splitIntoBursts] Final grouped result:', result);
+  console.log('[splitIntoBursts] Final grouped result:', result.map(r => ({ display: r.display.slice(0, 30), tts: r.tts.slice(0, 30) })));
   return result;
 }
 
@@ -911,34 +938,63 @@ if (currentSuggestedQuestions.length > 0) {
                   // Check if audio URLs are available (if not, we'll need to generate them)
                   const hasAudioUrls = preprompts.bursts.every((b) => b.audioUrl);
                   
-                  if (hasAudioUrls) {
+                    if (hasAudioUrls) {
                     // All audio URLs are available - use preprompts directly!
                     // If audio is disabled, show text with natural typing delay
                     if (!audioEnabledRef.current) {
-                      const hasImage = !!preprompts.imageUrl;
                       const citationsText = preprompts.citations;
+                  
+                      // Determine which message should get the image
+                      const imageIndex = preprompts.imageIndex !== undefined 
+                        ? preprompts.imageIndex 
+                        : (preprompts.bursts.length - 1); // Default to last burst
+                      const imageUrl = preprompts.imageUrl || undefined;
+                      
+                      // Helper to preload image and update message when ready
+                      const addImageToMessage = (msgId: string, imgUrl: string) => {
+                        const img = new Image();
+                        img.onload = () => {
+                          // Image loaded, update the message
+                          dispatchRef.current?.({ 
+                            type: 'UPDATE_MESSAGE_IMAGE', 
+                            id: msgId, 
+                            imageUrl: imgUrl 
+                          });
+                        };
+                        img.onerror = () => {
+                          // eslint-disable-next-line no-console
+                          console.error('[RAG] Failed to load image:', imgUrl);
+                        };
+                        img.src = imgUrl;
+                      };
                   
                       // Show typing indicator
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                   
                       // Add 2-second delay before first message for pregenerated answers
-                      // Add messages with delays to simulate natural texting
-                      let cumulativeDelay = 2000 + 800;
+                      // Add messages with 0.5s delay between each
+                      let cumulativeDelay = 2000;
                   
                       preprompts.bursts.forEach((burst, index) => {
                         setTimeout(() => {
                           const msgId = crypto.randomUUID();
-                          const isLastBurst = index === preprompts.bursts.length - 1;
-                          const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                          const shouldHaveImage = index === imageIndex && imageUrl;
+                          
+                          // Add message without image first (remove trailing periods for display)
+                          const displayText = removeTrailingPeriods(burst.text);
                           dispatchRef.current?.({ 
                             type: 'ADD_AI_MESSAGE', 
                             id: msgId, 
-                            text: burst.text,
-                            imageUrl: burstImageUrl
+                            text: displayText
                           });
+                          
+                          // If this message should have the image, load it asynchronously
+                          if (shouldHaveImage) {
+                            addImageToMessage(msgId, imageUrl);
+                          }
                       
                           // After last burst, add citations if any
-                          if (isLastBurst) {
+                          if (index === preprompts.bursts.length - 1) {
                             if (citationsText) {
                               setTimeout(() => {
                                 const citationsId = crypto.randomUUID();
@@ -952,7 +1008,7 @@ if (currentSuggestedQuestions.length > 0) {
                                   dispatchRef.current?.({ type: 'AUDIO_ENDED' });
                                   startIdleTimerRef.current(60000);
                                 }, 500);
-                              }, hasImage ? 2000 : 1000);
+                              }, 500);
                             } else {
                               setTimeout(() => {
                                 dispatchRef.current?.({ type: 'AUDIO_ENDED' });
@@ -962,11 +1018,8 @@ if (currentSuggestedQuestions.length > 0) {
                           }
                         }, cumulativeDelay);
                     
-                        // Calculate delay for next message
-                        if (index < preprompts.bursts.length - 1) {
-                          const nextBurst = preprompts.bursts[index + 1];
-                          cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
-                        }
+                        // 0.5s delay between messages
+                        cumulativeDelay += 500;
                       });
                   
                       prepromptsUsed = true; // Mark that we used preprompts
@@ -974,21 +1027,28 @@ if (currentSuggestedQuestions.length > 0) {
                     }
                     
                     // Audio enabled - enqueue preprompted bursts with 2-second delay
+                    // Determine which message should get the image
+                    const imageIndex = preprompts.imageIndex !== undefined 
+                      ? preprompts.imageIndex 
+                      : (preprompts.bursts.length - 1); // Default to last burst
+                    const imageUrl = preprompts.imageUrl || undefined;
+                    
                     // Add 2-second delay before first message for pregenerated answers
                     setTimeout(() => {
                       preprompts.bursts.forEach((burst, index) => {
                         const msgId = crypto.randomUUID();
-                        const isLastBurst = index === preprompts.bursts.length - 1;
-                        const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                        const shouldHaveImage = index === imageIndex && imageUrl;
                     
+                        // Remove trailing periods for display (audio already has correct intonation)
+                        const displayText = removeTrailingPeriods(burst.text);
                         // eslint-disable-next-line no-console
-                        console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                        console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, display: displayText.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: shouldHaveImage ? imageUrl : undefined });
                     
                         audioPlayerRef.current?.enqueue({
                           id: msgId,
-                          text: burst.text,
+                          text: displayText,
                           url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
-                          imageUrl: burstImageUrl
+                          imageUrl: shouldHaveImage ? imageUrl : undefined
                         });
                       });
                     }, 2000);
@@ -1011,30 +1071,59 @@ if (currentSuggestedQuestions.length > 0) {
                     
                     // If audio is disabled, show text with natural typing delay (same as when audio URLs exist)
                     if (!audioEnabledRef.current) {
-                      const hasImage = !!preprompts.imageUrl;
                       const citationsText = preprompts.citations;
+                  
+                      // Determine which message should get the image
+                      const imageIndex = preprompts.imageIndex !== undefined 
+                        ? preprompts.imageIndex 
+                        : (preprompts.bursts.length - 1); // Default to last burst
+                      const imageUrl = preprompts.imageUrl || undefined;
+                      
+                      // Helper to preload image and update message when ready
+                      const addImageToMessage = (msgId: string, imgUrl: string) => {
+                        const img = new Image();
+                        img.onload = () => {
+                          // Image loaded, update the message
+                          dispatchRef.current?.({ 
+                            type: 'UPDATE_MESSAGE_IMAGE', 
+                            id: msgId, 
+                            imageUrl: imgUrl 
+                          });
+                        };
+                        img.onerror = () => {
+                          // eslint-disable-next-line no-console
+                          console.error('[RAG] Failed to load image:', imgUrl);
+                        };
+                        img.src = imgUrl;
+                      };
                   
                       // Show typing indicator
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                   
                       // Add 2-second delay before first message for pregenerated answers
-                      // Add messages with delays to simulate natural texting
-                      let cumulativeDelay = 2000 + 800;
+                      // Add messages with 0.5s delay between each
+                      let cumulativeDelay = 2000;
                   
                       preprompts.bursts.forEach((burst, index) => {
                         setTimeout(() => {
                           const msgId = crypto.randomUUID();
-                          const isLastBurst = index === preprompts.bursts.length - 1;
-                          const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                          const shouldHaveImage = index === imageIndex && imageUrl;
+                          
+                          // Add message without image first (remove trailing periods for display)
+                          const displayText = removeTrailingPeriods(burst.text);
                           dispatchRef.current?.({ 
                             type: 'ADD_AI_MESSAGE', 
                             id: msgId, 
-                            text: burst.text,
-                            imageUrl: burstImageUrl
+                            text: displayText
                           });
+                          
+                          // If this message should have the image, load it asynchronously
+                          if (shouldHaveImage) {
+                            addImageToMessage(msgId, imageUrl);
+                          }
                       
                           // After last burst, add citations if any
-                          if (isLastBurst) {
+                          if (index === preprompts.bursts.length - 1) {
                             if (citationsText) {
                               setTimeout(() => {
                                 const citationsId = crypto.randomUUID();
@@ -1048,7 +1137,7 @@ if (currentSuggestedQuestions.length > 0) {
                                   dispatchRef.current?.({ type: 'AUDIO_ENDED' });
                                   startIdleTimerRef.current(60000);
                                 }, 500);
-                              }, hasImage ? 2000 : 1000);
+                              }, 500);
                             } else {
                               setTimeout(() => {
                                 dispatchRef.current?.({ type: 'AUDIO_ENDED' });
@@ -1058,11 +1147,8 @@ if (currentSuggestedQuestions.length > 0) {
                           }
                         }, cumulativeDelay);
                     
-                        // Calculate delay for next message
-                        if (index < preprompts.bursts.length - 1) {
-                          const nextBurst = preprompts.bursts[index + 1];
-                          cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
-                        }
+                        // 0.5s delay between messages
+                        cumulativeDelay += 500;
                       });
                   
                       prepromptsUsed = true; // Mark that we used preprompts
@@ -1070,6 +1156,12 @@ if (currentSuggestedQuestions.length > 0) {
                     }
                     
                     // Audio enabled - mix pregenerated audio with on-the-fly TTS for missing bursts
+                    // Determine which message should get the image
+                    const imageIndex = preprompts.imageIndex !== undefined 
+                      ? preprompts.imageIndex 
+                      : (preprompts.bursts.length - 1); // Default to last burst
+                    const imageUrl = preprompts.imageUrl || undefined;
+                    
                     // Add 2-second delay before first message for pregenerated answers
                     setTimeout(async () => {
                       // First, enqueue bursts that already have audio URLs
@@ -1077,15 +1169,16 @@ if (currentSuggestedQuestions.length > 0) {
                         const burst = preprompts.bursts[i];
                         if (burst.audioUrl) {
                           const msgId = crypto.randomUUID();
-                          const isLastBurst = i === preprompts.bursts.length - 1;
-                          const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                          const shouldHaveImage = i === imageIndex && imageUrl;
+                          // Remove trailing periods for display (audio already has correct intonation)
+                          const displayText = removeTrailingPeriods(burst.text);
                           // eslint-disable-next-line no-console
-                          console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                          console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, display: displayText.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: shouldHaveImage ? imageUrl : undefined });
                           audioPlayerRef.current?.enqueue({ 
                             id: msgId, 
-                            text: burst.text, 
+                            text: displayText, 
                             url: burst.audioUrl,
-                            imageUrl: burstImageUrl
+                            imageUrl: shouldHaveImage ? imageUrl : undefined
                           });
                         }
                       }
@@ -1097,8 +1190,11 @@ if (currentSuggestedQuestions.length > 0) {
                     
                         const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
                           try {
+                            // Use original text with punctuation for TTS (better intonation)
                             const { audioUrl } = await postTTS(burst.text);
-                            return { success: true, burst, originalIndex, audioUrl };
+                            // Create display version without trailing periods
+                            const displayText = removeTrailingPeriods(burst.text);
+                            return { success: true, burst, originalIndex, audioUrl, displayText };
                           } catch (err) {
                             // eslint-disable-next-line no-console
                             console.error('[RAG][TTS] preprompt burst TTS failed', { originalIndex, err });
@@ -1110,34 +1206,57 @@ if (currentSuggestedQuestions.length > 0) {
                         try {
                           const results = await Promise.all(ttsPromises);
                           for (const result of results) {
-                            if (result.success && result.audioUrl) {
+                            if (result.success && result.audioUrl && result.displayText) {
                               // Find the original index in the full bursts array
                               const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
                               const msgId = crypto.randomUUID();
-                              const isLastBurst = originalIndex === preprompts.bursts.length - 1;
-                              const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                              const shouldHaveImage = originalIndex === imageIndex && imageUrl;
                               // eslint-disable-next-line no-console
-                              console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, text: result.burst.text.slice(0, 30), audioUrl: result.audioUrl });
+                              console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, display: result.displayText.slice(0, 30), tts: result.burst.text.slice(0, 30), audioUrl: result.audioUrl, imageUrl: shouldHaveImage ? imageUrl : undefined });
+                              // Use display text (without trailing periods) for the message shown to user
                               audioPlayerRef.current?.enqueue({ 
                                 id: msgId, 
-                                text: result.burst.text, 
+                                text: result.displayText, 
                                 url: result.audioUrl,
-                                imageUrl: burstImageUrl
+                                imageUrl: shouldHaveImage ? imageUrl : undefined
                               });
                             } else {
                               // If TTS failed, show as text message
                               const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
                               const msgId = crypto.randomUUID();
-                              const isLastBurst = originalIndex === preprompts.bursts.length - 1;
-                              const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                              const shouldHaveImage = originalIndex === imageIndex && imageUrl;
+                              
+                              // Helper to preload image and update message when ready
+                              const addImageToMessage = (msgId: string, imgUrl: string) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                  dispatchRef.current?.({ 
+                                    type: 'UPDATE_MESSAGE_IMAGE', 
+                                    id: msgId, 
+                                    imageUrl: imgUrl 
+                                  });
+                                };
+                                img.onerror = () => {
+                                  // eslint-disable-next-line no-console
+                                  console.error('[RAG] Failed to load image:', imgUrl);
+                                };
+                                img.src = imgUrl;
+                              };
+                              
+                              // Use display text (without trailing periods) for the message shown to user
+                              const displayText = removeTrailingPeriods(result.burst.text);
                               // eslint-disable-next-line no-console
                               console.log('[RAG][PREPROMPT][TTS] TTS failed, showing as text message', { index: originalIndex });
                               dispatchRef.current?.({ 
                                 type: 'ADD_AI_MESSAGE', 
                                 id: msgId, 
-                                text: result.burst.text,
-                                imageUrl: burstImageUrl
+                                text: displayText
                               });
+                              
+                              // If this message should have the image, load it asynchronously
+                              if (shouldHaveImage) {
+                                addImageToMessage(msgId, imageUrl);
+                              }
                             }
                           }
                         } catch (err) {
@@ -1212,13 +1331,14 @@ if (currentSuggestedQuestions.length > 0) {
                 if (!hasEvidence && flags.STRICT_RAG_ONLY) {
                     // eslint-disable-next-line no-console
                     console.log('[RAG] gated: insufficient evidence', { topScore, threshold: flags.RAG_MIN_SCORE });
-                    const fallback = removeTrailingPeriods(isSensitive
+                    const fallbackText = isSensitive
                       ? (questionLang === 'nl' 
                           ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                           : 'I can\'t go into that, I\'m afraid they\'ll find me.')
                       : (questionLang === 'nl'
                           ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
-                          : 'Hmm, sorry I\'m not the right person to answer that.'));
+                          : 'Hmm, sorry I\'m not the right person to answer that.');
+                    const fallbackDisplay = removeTrailingPeriods(fallbackText);
                 
                     // If audio is disabled, show text with natural typing delay
                     if (!audioEnabledRef.current) {
@@ -1226,11 +1346,11 @@ if (currentSuggestedQuestions.length > 0) {
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                       
                       // Calculate typing delay based on text length
-                      const typingDelay = Math.min(800 + (fallback.length / 10) * 200, 2500);
+                      const typingDelay = Math.min(800 + (fallbackDisplay.length / 10) * 200, 2500);
                       
                       setTimeout(() => {
                         const msgId = crypto.randomUUID();
-                        dispatchRef.current?.({ type: 'ADD_AI_MESSAGE', id: msgId, text: fallback });
+                        dispatchRef.current?.({ type: 'ADD_AI_MESSAGE', id: msgId, text: fallbackDisplay });
                 
                         // Set UI back to idle after message is shown
                         setTimeout(() => {
@@ -1242,12 +1362,12 @@ if (currentSuggestedQuestions.length > 0) {
                     }
                 
                     try {
-                      // Generate TTS first, then enqueue; text bubble is added when audio starts
-                      const { audioUrl } = await postTTS(fallback);
+                      // Generate TTS with original text (with punctuation), display without trailing periods
+                      const { audioUrl } = await postTTS(fallbackText);
                       const msgId = crypto.randomUUID();
                       // eslint-disable-next-line no-console
-                      console.log('[RAG][TTS] enqueue fallback burst', { msgId, text: fallback, audioUrl });
-                      audioPlayerRef.current?.enqueue({ id: msgId, text: fallback, url: audioUrl });
+                      console.log('[RAG][TTS] enqueue fallback burst', { msgId, text: fallbackDisplay, ttsText: fallbackText, audioUrl });
+                      audioPlayerRef.current?.enqueue({ id: msgId, text: fallbackDisplay, url: audioUrl });
                     } catch (err) {
                       // eslint-disable-next-line no-console
                       console.error('[RAG][TTS] fallback TTS failed', err);
@@ -1317,77 +1437,76 @@ if (currentSuggestedQuestions.length > 0) {
             
                 // If audio is disabled, show messages without TTS but with natural delays
                 if (!audioEnabledRef.current) {
-                  // Calculate typing delay based on text length (simulate human typing speed)
-                  // Average typing speed: ~200 characters per minute = ~3.3 chars/sec
-                  // Add base delay of 800ms + 200ms per 10 characters
-                  const calculateTypingDelay = (text: string): number => {
-                    const baseDelay = 800; // Base delay before first message
-                    const charDelay = (text.length / 10) * 200; // ~200ms per 10 chars
-                    return Math.min(baseDelay + charDelay, 3000); // Cap at 3 seconds
+                  // Helper to preload image and update message when ready
+                  const addImageToMessage = (msgId: string, imgUrl: string) => {
+                    const img = new Image();
+                    img.onload = () => {
+                      // Image loaded, update the message
+                      dispatchRef.current?.({ 
+                        type: 'UPDATE_MESSAGE_IMAGE', 
+                        id: msgId, 
+                        imageUrl: imgUrl 
+                      });
+                    };
+                    img.onerror = () => {
+                      // eslint-disable-next-line no-console
+                      console.error('[RAG] Failed to load image:', imgUrl);
+                    };
+                    img.src = imgUrl;
                   };
-                
-                  // Capture values before setTimeout closures
-                  const hasImage = !!imageUrl;
                 
                   // Show typing indicator
                   dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                 
-                  // Add messages with delays to simulate natural texting
-                  let cumulativeDelay = calculateTypingDelay(bursts[0] || '');
+                  // Add messages with 0.5s delay between each
+                  // For generated answers, image goes on last burst by default
+                  const imageIndex = bursts.length - 1;
+                  let cumulativeDelay = 800; // Initial delay
                 
-                  bursts.forEach((chunk, index) => {
+                  bursts.forEach((burst, index) => {
                     setTimeout(() => {
                       const msgId = crypto.randomUUID();
-                      const isLastBurst = index === bursts.length - 1;
-                      const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
+                      const shouldHaveImage = index === imageIndex && imageUrl;
+                      
+                      // Add message without image first (use display text without trailing periods)
                       dispatchRef.current?.({ 
                         type: 'ADD_AI_MESSAGE', 
                         id: msgId, 
-                        text: chunk,
-                        imageUrl: burstImageUrl
+                        text: burst.display
                       });
+                      
+                      // If this message should have the image, load it asynchronously
+                      if (shouldHaveImage) {
+                        addImageToMessage(msgId, imageUrl);
+                      }
                 
                       // After last burst, add final message and citations
-                      if (isLastBurst) {
-                        // Add final message after image if needed
-                        if (hasImage) {
-                          setTimeout(() => {
-                            const finalText = currentQuestionLangRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
-                            const finalMsgId = crypto.randomUUID();
-                            dispatchRef.current?.({ 
-                              type: 'ADD_AI_MESSAGE', 
-                              id: finalMsgId, 
-                              text: finalText 
-                            });
-                          }, 1500); // 1.5 second delay after image
-                        }
-                  
+                      if (index === bursts.length - 1) {
                         // Citations are now displayed in settings, not as messages
                         // Set UI back to idle after all messages are shown
                         setTimeout(() => {
                           dispatchRef.current?.({ type: 'AUDIO_ENDED' });
                           startIdleTimerRef.current(60000);
-                        }, hasImage ? 2000 : 1000);
+                        }, 500);
                       }
                     }, cumulativeDelay);
                   
-                    // Calculate delay for next message (1-2 seconds between messages)
-                    if (index < bursts.length - 1) {
-                      const nextChunk = bursts[index + 1];
-                      cumulativeDelay += 1000 + (nextChunk.length / 10) * 100; // 1-2 seconds between messages
-                    }
+                    // 0.5s delay between messages
+                    cumulativeDelay += 500;
                   });
                 
                   return;
                 }
             
                 // Start TTS generation for all bursts in parallel (low latency)
+                // Use TTS text (with punctuation) for TTS, display text (without trailing periods) for UI
                 // Enqueue them in order as they complete, but don't wait for all to finish
                 // This maintains low latency (first burst starts immediately) while preserving order
-                const burstPromises = bursts.map(async (chunk, index) => {
+                const burstPromises = bursts.map(async (burst, index) => {
                   try {
-                    const { audioUrl } = await postTTS(chunk);
-                    return { success: true, index, chunk, audioUrl };
+                    // Use TTS text (with punctuation) for better intonation
+                    const { audioUrl } = await postTTS(burst.tts);
+                    return { success: true, index, burst, audioUrl };
                   } catch (err) {
                     // eslint-disable-next-line no-console
                     console.error('[RAG][TTS] burst TTS failed', { index, err });
@@ -1395,24 +1514,27 @@ if (currentSuggestedQuestions.length > 0) {
                   }
                 });
             
+                // For generated answers, image goes on last burst by default
+                const imageIndex = bursts.length - 1;
+                
                 // Enqueue bursts sequentially in order, but start as soon as each is ready
                 // This way burst 0 can start playing immediately while others are still generating
                 (async () => {
                   for (let i = 0; i < burstPromises.length; i++) {
                     try {
                       const result = await burstPromises[i];
-                      if (result.success && result.chunk && result.audioUrl) {
+                      if (result.success && result.burst && result.audioUrl) {
                         const msgId = crypto.randomUUID();
-                        const isLastBurst = i === burstPromises.length - 1;
-                        // Include imageUrl only for the last burst if it exists
-                        const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
+                        // Include imageUrl only for the message at imageIndex if it exists
+                        const shouldHaveImage = i === imageIndex && imageUrl;
                         // eslint-disable-next-line no-console
-                        console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, chunk: result.chunk.slice(0, 30), audioUrl: result.audioUrl, imageUrl: burstImageUrl, isLastBurst });
+                        console.log('[RAG][TTS] enqueue burst', { index: result.index, msgId, display: result.burst.display.slice(0, 30), tts: result.burst.tts.slice(0, 30), audioUrl: result.audioUrl, imageUrl: shouldHaveImage ? imageUrl : undefined });
+                        // Use display text (without trailing periods) for the message shown to user
                         audioPlayerRef.current?.enqueue({ 
                           id: msgId, 
-                          text: result.chunk, 
+                          text: result.burst.display, 
                           url: result.audioUrl,
-                          imageUrl: burstImageUrl
+                          imageUrl: shouldHaveImage ? imageUrl : undefined
                         });
                       }
                     } catch (err) {
@@ -1471,6 +1593,7 @@ if (currentSuggestedQuestions.length > 0) {
         messageCount: ctxNow.messages.length,
       });
       // Append AI message directly using functional state update so multiple bursts all show up
+      // Add message without image first, then load image asynchronously if provided
       setCtx((prev: UIContext) => {
         if (prev.messages.some((m: { id: string }) => m.id === id)) {
           return { ...prev, ui: 'ai_response_playing' };
@@ -1480,7 +1603,7 @@ if (currentSuggestedQuestions.length > 0) {
           role: 'ai' as const,
           text,
           status: 'final' as const,
-          imageUrl,
+          // Don't include imageUrl initially - will be added when loaded
         };
         return {
           ...prev,
@@ -1489,6 +1612,24 @@ if (currentSuggestedQuestions.length > 0) {
         };
       });
       setUI('ai_response_playing');
+      
+      // If imageUrl is provided, load it asynchronously and update the message when ready
+      if (imageUrl) {
+        const img = new Image();
+        img.onload = () => {
+          // Image loaded, update the message
+          dispatchRef.current?.({ 
+            type: 'UPDATE_MESSAGE_IMAGE', 
+            id, 
+            imageUrl 
+          });
+        };
+        img.onerror = () => {
+          // eslint-disable-next-line no-console
+          console.error('[AudioPlayer] Failed to load image:', imageUrl);
+        };
+        img.src = imageUrl;
+      }
     },
     onAudioStart: (id: string) => {
       // This is now called from onAddMessage after a setTimeout

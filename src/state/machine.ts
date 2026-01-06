@@ -21,6 +21,7 @@ export type Action =
   | { type: 'AI_FINAL'; id: string; text: string; audioUrl?: string }
   | { type: 'AUDIO_STARTED' }
   | { type: 'AUDIO_ENDED' }
+  | { type: 'UPDATE_MESSAGE_IMAGE'; id: string; imageUrl: string }
   | { type: 'RESET' }
   | { type: 'INACTIVITY_TIMEOUT' };
 
@@ -228,6 +229,19 @@ export function reducer(state: UIState, ctx: UIContext, action: Action): [UIStat
     case 'INACTIVITY_TIMEOUT': {
       // INACTIVITY_TIMEOUT(): No changes to messages
       return ['idle', { ...ctx, ui: 'idle' }];
+    }
+    
+    case 'UPDATE_MESSAGE_IMAGE': {
+      // UPDATE_MESSAGE_IMAGE(id, imageUrl): Update an existing message's imageUrl
+      const next: UIContext = {
+        ...ctx,
+        messages: ctx.messages.map(msg => 
+          msg.id === action.id 
+            ? { ...msg, imageUrl: action.imageUrl }
+            : msg
+        )
+      };
+      return [state, next];
     }
     
     case 'RESET': {

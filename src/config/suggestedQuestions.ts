@@ -8,6 +8,7 @@ export type PrepromptBurst = {
 export type Preprompts = {
   bursts: PrepromptBurst[];
   imageUrl?: string | null;
+  imageIndex?: number; // Which burst index (0-based) should display the image. Defaults to last burst if not specified.
   citations?: string | null;
 };
 
@@ -563,6 +564,7 @@ export const getPreprompts = async (questionId: string, lang: Language): Promise
             audioUrl: lang === 'nl' ? (burst.audioUrl || undefined) : undefined, // English always undefined
           })),
           imageUrl: data.image_url || undefined,
+          imageIndex: data.image_index !== undefined ? data.image_index : undefined, // Which burst should have the image
           citations: data.citations || undefined,
         };
       }
