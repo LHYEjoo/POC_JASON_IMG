@@ -921,8 +921,9 @@ if (currentSuggestedQuestions.length > 0) {
                       // Show typing indicator
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                   
+                      // Add 2-second delay before first message for pregenerated answers
                       // Add messages with delays to simulate natural texting
-                      let cumulativeDelay = 800;
+                      let cumulativeDelay = 2000 + 800;
                   
                       preprompts.bursts.forEach((burst, index) => {
                         setTimeout(() => {
@@ -972,22 +973,25 @@ if (currentSuggestedQuestions.length > 0) {
                       return; // Skip normal RAG flow
                     }
                     
-                    // Audio enabled - enqueue preprompted bursts
-                    preprompts.bursts.forEach((burst, index) => {
-                      const msgId = crypto.randomUUID();
-                      const isLastBurst = index === preprompts.bursts.length - 1;
-                      const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                  
-                      // eslint-disable-next-line no-console
-                      console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
-                  
-                      audioPlayerRef.current?.enqueue({
-                        id: msgId,
-                        text: burst.text,
-                        url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
-                        imageUrl: burstImageUrl
+                    // Audio enabled - enqueue preprompted bursts with 2-second delay
+                    // Add 2-second delay before first message for pregenerated answers
+                    setTimeout(() => {
+                      preprompts.bursts.forEach((burst, index) => {
+                        const msgId = crypto.randomUUID();
+                        const isLastBurst = index === preprompts.bursts.length - 1;
+                        const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                    
+                        // eslint-disable-next-line no-console
+                        console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                    
+                        audioPlayerRef.current?.enqueue({
+                          id: msgId,
+                          text: burst.text,
+                          url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
+                          imageUrl: burstImageUrl
+                        });
                       });
-                    });
+                    }, 2000);
                     
                     // Citations are now handled in settings, not as messages
                     
@@ -1013,8 +1017,9 @@ if (currentSuggestedQuestions.length > 0) {
                       // Show typing indicator
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                   
+                      // Add 2-second delay before first message for pregenerated answers
                       // Add messages with delays to simulate natural texting
-                      let cumulativeDelay = 800;
+                      let cumulativeDelay = 2000 + 800;
                   
                       preprompts.bursts.forEach((burst, index) => {
                         setTimeout(() => {
@@ -1065,79 +1070,82 @@ if (currentSuggestedQuestions.length > 0) {
                     }
                     
                     // Audio enabled - mix pregenerated audio with on-the-fly TTS for missing bursts
-                    // First, enqueue bursts that already have audio URLs
-                    for (let i = 0; i < preprompts.bursts.length; i++) {
-                      const burst = preprompts.bursts[i];
-                      if (burst.audioUrl) {
-                        const msgId = crypto.randomUUID();
-                        const isLastBurst = i === preprompts.bursts.length - 1;
-                        const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                        // eslint-disable-next-line no-console
-                        console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
-                        audioPlayerRef.current?.enqueue({ 
-                          id: msgId, 
-                          text: burst.text, 
-                          url: burst.audioUrl,
-                          imageUrl: burstImageUrl
-                        });
+                    // Add 2-second delay before first message for pregenerated answers
+                    setTimeout(async () => {
+                      // First, enqueue bursts that already have audio URLs
+                      for (let i = 0; i < preprompts.bursts.length; i++) {
+                        const burst = preprompts.bursts[i];
+                        if (burst.audioUrl) {
+                          const msgId = crypto.randomUUID();
+                          const isLastBurst = i === preprompts.bursts.length - 1;
+                          const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                          // eslint-disable-next-line no-console
+                          console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                          audioPlayerRef.current?.enqueue({ 
+                            id: msgId, 
+                            text: burst.text, 
+                            url: burst.audioUrl,
+                            imageUrl: burstImageUrl
+                          });
+                        }
                       }
-                    }
                     
-                    // Then, generate TTS on-the-fly for bursts without audio URLs
-                    if (burstsWithoutAudio.length > 0) {
-                      // eslint-disable-next-line no-console
-                      console.log('[RAG][PREPROMPT] Generating TTS for', burstsWithoutAudio.length, 'missing bursts');
-                  
-                      const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
+                      // Then, generate TTS on-the-fly for bursts without audio URLs
+                      if (burstsWithoutAudio.length > 0) {
+                        // eslint-disable-next-line no-console
+                        console.log('[RAG][PREPROMPT] Generating TTS for', burstsWithoutAudio.length, 'missing bursts');
+                    
+                        const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
+                          try {
+                            const { audioUrl } = await postTTS(burst.text);
+                            return { success: true, burst, originalIndex, audioUrl };
+                          } catch (err) {
+                            // eslint-disable-next-line no-console
+                            console.error('[RAG][TTS] preprompt burst TTS failed', { originalIndex, err });
+                            return { success: false, burst, originalIndex };
+                          }
+                        });
+                    
+                        // Wait for TTS and enqueue
                         try {
-                          const { audioUrl } = await postTTS(burst.text);
-                          return { success: true, burst, originalIndex, audioUrl };
+                          const results = await Promise.all(ttsPromises);
+                          for (const result of results) {
+                            if (result.success && result.audioUrl) {
+                              // Find the original index in the full bursts array
+                              const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
+                              const msgId = crypto.randomUUID();
+                              const isLastBurst = originalIndex === preprompts.bursts.length - 1;
+                              const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                              // eslint-disable-next-line no-console
+                              console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, text: result.burst.text.slice(0, 30), audioUrl: result.audioUrl });
+                              audioPlayerRef.current?.enqueue({ 
+                                id: msgId, 
+                                text: result.burst.text, 
+                                url: result.audioUrl,
+                                imageUrl: burstImageUrl
+                              });
+                            } else {
+                              // If TTS failed, show as text message
+                              const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
+                              const msgId = crypto.randomUUID();
+                              const isLastBurst = originalIndex === preprompts.bursts.length - 1;
+                              const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                              // eslint-disable-next-line no-console
+                              console.log('[RAG][PREPROMPT][TTS] TTS failed, showing as text message', { index: originalIndex });
+                              dispatchRef.current?.({ 
+                                type: 'ADD_AI_MESSAGE', 
+                                id: msgId, 
+                                text: result.burst.text,
+                                imageUrl: burstImageUrl
+                              });
+                            }
+                          }
                         } catch (err) {
                           // eslint-disable-next-line no-console
-                          console.error('[RAG][TTS] preprompt burst TTS failed', { originalIndex, err });
-                          return { success: false, burst, originalIndex };
+                          console.error('[RAG][PREPROMPT] Error generating TTS for missing bursts:', err);
                         }
-                      });
-                  
-                      // Wait for TTS and enqueue
-                      try {
-                        const results = await Promise.all(ttsPromises);
-                        for (const result of results) {
-                          if (result.success && result.audioUrl) {
-                            // Find the original index in the full bursts array
-                            const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
-                            const msgId = crypto.randomUUID();
-                            const isLastBurst = originalIndex === preprompts.bursts.length - 1;
-                            const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                            // eslint-disable-next-line no-console
-                            console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, text: result.burst.text.slice(0, 30), audioUrl: result.audioUrl });
-                            audioPlayerRef.current?.enqueue({ 
-                              id: msgId, 
-                              text: result.burst.text, 
-                              url: result.audioUrl,
-                              imageUrl: burstImageUrl
-                            });
-                          } else {
-                            // If TTS failed, show as text message
-                            const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
-                            const msgId = crypto.randomUUID();
-                            const isLastBurst = originalIndex === preprompts.bursts.length - 1;
-                            const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                            // eslint-disable-next-line no-console
-                            console.log('[RAG][PREPROMPT][TTS] TTS failed, showing as text message', { index: originalIndex });
-                            dispatchRef.current?.({ 
-                              type: 'ADD_AI_MESSAGE', 
-                              id: msgId, 
-                              text: result.burst.text,
-                              imageUrl: burstImageUrl
-                            });
-                          }
-                        }
-                      } catch (err) {
-                        // eslint-disable-next-line no-console
-                        console.error('[RAG][PREPROMPT] Error generating TTS for missing bursts:', err);
                       }
-                    }
+                    }, 2000);
                     
                     prepromptsUsed = true;
                     return; // Skip normal RAG flow
@@ -1711,18 +1719,26 @@ if (currentSuggestedQuestions.length > 0) {
               )}
 
               <div className="space-y-4">
-                {ctx.messages.map((m: { id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }, index: number) => (
-                  <div key={m.id} className="message-item" data-index={index}>
-                    <ChatBubble
-                      type={m.role}
-                      text={m.text}
-                      showAvatar={m.role === 'ai'}
-                      avatarSrc="/img/Henry.png"
-                      status={m.status}
-                      imageUrl={m.imageUrl}
-                    />
-                  </div>
-                ))}
+                {ctx.messages.map((m: { id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }, index: number) => {
+                  // Show avatar only if this is the first AI message in a sequence (previous message is user or this is the first message)
+                  const isFirstInSequence = m.role === 'ai' && (
+                    index === 0 || 
+                    ctx.messages[index - 1]?.role === 'user'
+                  );
+                  
+                  return (
+                    <div key={m.id} className="message-item" data-index={index}>
+                      <ChatBubble
+                        type={m.role}
+                        text={m.text}
+                        showAvatar={isFirstInSequence}
+                        avatarSrc="/img/Henry.png"
+                        status={m.status}
+                        imageUrl={m.imageUrl}
+                      />
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Show if no messages */}
