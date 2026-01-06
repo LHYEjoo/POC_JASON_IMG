@@ -21,6 +21,7 @@ import { getPreprompt, type Language } from '../config/prompt';
 import { getImageForPrompt } from '../config/promptImages';
 import { useDynamicQuestions } from '../hooks/useDynamicQuestions';
 import { getPreprompts, type Language as QuestionLanguage } from '../config/suggestedQuestions';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const PROJECT_ID = (import.meta as any).env?.VITE_PROJECT_ID || null;
 
@@ -1770,6 +1771,9 @@ if (currentSuggestedQuestions.length > 0) {
   // Dynamische suggestievragen
   const { list: suggestedQuestions, questions: suggestedQuestionsWithIds, next: nextSuggestedQuestions } = useDynamicQuestions(language);
   
+  // Mobile detection hook (replaces window.innerWidth checks)
+  const isMobile = useIsMobile();
+  
   // Store in ref so it's available in setTimeout callbacks
   const suggestedQuestionsWithIdsRef = React.useRef(suggestedQuestionsWithIds);
   React.useEffect(() => {
@@ -1811,39 +1815,7 @@ if (currentSuggestedQuestions.length > 0) {
     }
   }, [ui, ctx.ui]);
 
-  // Update chat container positioning when UI state changes
-  React.useEffect(() => {
-    const chatContainer = document.querySelector('.mobile-message-container') as HTMLElement;
-    if (chatContainer) {
-      const newBottom = ui === 'idle'
-        ? (window.innerWidth < 640 ? '7rem' : 'calc(33vh + 7rem)')
-        : '0';
-      chatContainer.style.bottom = newBottom;
-    }
-  }, [ui]);
-
-  // Handle window resize for responsive layout
-  React.useEffect(() => {
-    const handleResize = () => {
-      const chatContainer = document.querySelector('.mobile-message-container') as HTMLElement;
-      const suggestionsPanel = document.querySelector('[data-suggestions-panel]') as HTMLElement;
-
-      if (chatContainer) {
-        const newBottom = ui === 'idle'
-          ? (window.innerWidth < 640 ? '7rem' : 'calc(33vh + 7rem)')
-          : '0';
-        chatContainer.style.bottom = newBottom;
-      }
-
-      if (suggestionsPanel) {
-        suggestionsPanel.style.height = window.innerWidth < 640 ? '6rem' : '33vh';
-        suggestionsPanel.style.minHeight = window.innerWidth < 640 ? '6rem' : '200px';
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [ui]);
+  // Removed: DOM manipulation effects - now handled by CSS flex layout
 
   // Refs for imperative handles
   // audioPlayerRef is already declared above, just update it
@@ -1858,59 +1830,24 @@ if (currentSuggestedQuestions.length > 0) {
   // ---------- Render ----------
   return (
     <div
-      className="text-[var(--color-text)]"
+      className="text-[var(--color-text)] flex flex-col min-h-[100dvh] h-[100dvh] overflow-hidden"
       style={{
         fontFamily: brand.fontFamily,
         // Browser fallbacks for CSS custom properties
         backgroundColor: '#EEEEEE',
         color: '#000000',
-        // Force full height and remove any gaps
-        height: '100vh',
-        minHeight: '100vh',
-        maxHeight: '100vh',
-        overflow: 'hidden',
-        // Ensure proper layering
-        position: 'relative',
-        zIndex: 1
       }}
     >
-      <HeaderBar name="Henry" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
+      {/* Header - fixed at top */}
+      <div className="shrink-0">
+        <HeaderBar name="Henry" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
+      </div>
 
-      {/* Chat Messages Container - Flexible height for all messages */}
-      <div
-        className="fixed inset-x-0 top-28 z-30 mobile-message-container"
-        style={{
-          // Dynamic bottom positioning based on UI state and screen size
-          bottom: ui === 'idle'
-            ? (window.innerWidth < 640 ? '7rem' : 'calc(33vh + 7rem)')  // Account for suggestions panel
-            : '0',  // Fill to bottom when suggestions are hidden
-          // Ensure minimum height for all browsers
-          minHeight: '200px',
-          // Force visibility and proper positioning
-          display: 'block',
-          visibility: 'visible',
-          opacity: 1,
-          // Allow content to grow - use calc to ensure full height
-          height: ui === 'idle'
-            ? (window.innerWidth < 640
-              ? 'calc(100vh - 7rem - 7rem)' // Full height minus header and suggestions
-              : 'calc(100vh - 7rem - 33vh - 7rem)') // Full height minus header, suggestions, and mic
-            : 'calc(100vh - 7rem)', // Full height minus header only
-          maxHeight: 'none',
-          // Ensure proper background handling - match the main background
-          backgroundColor: '#EEEEEE',
-          // Mobile-specific improvements
-          ...(window.innerWidth < 640 && {
-            // Ensure proper mobile spacing
-            paddingBottom: '1rem'
-          })
-        }}
-      >
-        <div className="h-full overflow-y-auto min-h-[200px] max-h-none" style={{
-          height: '100%',
-          maxHeight: 'none',
-          overflowY: 'auto'
-        }}>
+      {/* Content wrapper - takes remaining space */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        {/* Chat Messages Container - Flexible height for all messages */}
+        <div className="flex-1 min-h-0 overflow-hidden mobile-message-container bg-[var(--color-jerboa)]">
+          <div className="h-full overflow-y-auto">
           <main className="mx-auto max-w-4xl px-6">
             <DisclaimerInline language={language} />
 
@@ -1963,14 +1900,12 @@ if (currentSuggestedQuestions.length > 0) {
               <div ref={bottomRef} />
             </div>
           </main>
+          </div>
         </div>
 
-        {/* Keyboard fallback tussen suggestions en microphone */}
+        {/* Keyboard fallback - positioned above suggestions */}
         {showKeyboard && (
-          <div
-            className="absolute inset-x-0 bg-white border-t border-black/10 shadow-vpro"
-            style={{ bottom: '7.5rem' }}
-          >
+          <div className="shrink-0 bg-white border-t border-black/10 shadow-vpro">
             <div className="mx-auto max-w-4xl px-6 py-4">
               <TextInputFallback
                 onSubmit={(t) => {
@@ -1981,27 +1916,21 @@ if (currentSuggestedQuestions.length > 0) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Suggestions Panel - Only render when idle */}
-      <div
-        data-suggestions-panel
-        className={`fixed inset-x-0 bottom-0 z-10 bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 transition-opacity duration-500 ${ui === 'idle' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-        style={{
-          backgroundColor: '#EEEEEE',
-          // Mobile-specific height adjustments
-          height: window.innerWidth < 640 ? '6rem' : '33vh',
-          minHeight: window.innerWidth < 640 ? '6rem' : '200px',
-          maxHeight: window.innerWidth < 640 ? '6rem' : '33vh',
-          // Ensure proper mobile spacing
-          paddingBottom: window.innerWidth < 640 ? '0.5rem' : '0',
-          // Ensure it doesn't extend beyond bottom
-          bottom: '0',
-          top: 'auto',
-          // Remove debug border
-        }}
-      >
+        {/* Bottom area: Suggestions Panel + Mic/Keyboard buttons */}
+        <div className="shrink-0 relative">
+          {/* Suggestions Panel - Only render when idle */}
+          <div
+            data-suggestions-panel
+            className={`bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 transition-opacity duration-500 ${
+              ui === 'idle' ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            } ${
+              isMobile ? 'h-24 min-h-24 max-h-24 pb-2' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
+            }`}
+            style={{
+              backgroundColor: '#EEEEEE',
+            }}
+          >
         <div className="mx-auto max-w-4xl px-6 py-4 h-full flex flex-col">
           <div className="flex justify-center">
             <div className="w-full max-w-3xl">
@@ -2045,13 +1974,14 @@ if (currentSuggestedQuestions.length > 0) {
           </div>
           <div className="mt-4 flex justify-center mt-auto" />
         </div>
-      </div>
+        </div>
 
-      {/* Always-visible mic (sticky, center) */}
-      <div className={`fixed inset-x-0 bottom-4 z-20 flex justify-center transition-opacity duration-500 ${ui === 'idle' || ui === 'recording' ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        {/* Mic and Keyboard buttons row */}
+        <div className={`absolute inset-x-0 bottom-4 z-20 flex justify-center items-center gap-4 transition-opacity duration-500 ${
+          ui === 'idle' || ui === 'recording' ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
-        {/* Robust Microphone Button - Better UX */}
-        <MicFAB
+          {/* Robust Microphone Button - Better UX */}
+          <MicFAB
           placement="inline"
           state={stt.status === 'listening' ? 'recording' : 'idle'}
           sttStatus={stt.status}
@@ -2085,39 +2015,20 @@ if (currentSuggestedQuestions.length > 0) {
               setTimeout(() => setToast(''), 3000);
             }
           }}
-        />
+          />
+          {/* Keyboard toggle */}
+          <KeyboardFAB onClick={() => setShowKeyboard((v: boolean) => !v)} />
+        </div>
+      </div>
       </div>
 
-      {/* Keyboard toggle (rechts-onder) */}
-      <div className="fixed bottom-4 right-4 z-20">
-        <KeyboardFAB onClick={() => setShowKeyboard((v: boolean) => !v)} />
-      </div>
 
 
-
-      {/* CSS Reset to eliminate white bar */}
+      {/* Minimal CSS for layout stability */}
       <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        body, html {
-          height: 100%;
-          overflow: hidden;
-        }
-        #root {
-          height: 100vh;
-        }
-        /* Ensure chat container is above everything */
+        /* Ensure proper scrolling on mobile */
         .mobile-message-container {
-          position: fixed !important;
-          z-index: 30 !important;
-          background-color: var(--color-jerboa) !important;
-        }
-        /* Ensure proper stacking context */
-        .mobile-message-container > div {
-          background-color: transparent;
+          -webkit-overflow-scrolling: touch;
         }
       `}</style>
 
