@@ -726,7 +726,11 @@ export default function DigitalShadow() {
               
               // Detect the language of the user's question
               const questionLang = detectQuestionLanguage(questionText);
-              currentQuestionLangRef.current = questionLang; // Store for later use (e.g., image captions)
+             
+             currentQuestionLangRef.current = questionLang; // Store for later use (e.g., image captions)
+            
+              const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current ?? [];
+
               // eslint-disable-next-line no-console
               console.log('[RAG] Detected question language:', questionLang);
               
@@ -745,8 +749,7 @@ export default function DigitalShadow() {
               } else {
                 // Fallback: Find questionId by matching text with suggested questions
                 // Use ref to ensure we have the latest value in setTimeout callback
-                const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
-                if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
+                if (currentSuggestedQuestions.length > 0)  {
                   const userText = questionText.trim();
                   const userTextLower = userText.toLowerCase();
               
@@ -773,9 +776,8 @@ export default function DigitalShadow() {
                   }
     
 // Fallback: Find questionId by matching text with suggested questions
-const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
+if (currentSuggestedQuestions.length > 0) {
 
-if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
   const userText = questionText.trim();
   const userTextLower = userText.toLowerCase();
 
