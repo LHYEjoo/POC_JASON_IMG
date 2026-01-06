@@ -764,159 +764,93 @@ export default function DigitalShadow() {
               
                   // If still no match, try partial match (user text starts with question text or vice versa)
                   if (!matchedQuestion) {
-                    matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
-                    const qTextLower = q.text.toLowerCase().trim();
-                
-                // Check if question text starts with user text (user typed/spoke beginning of question)
-                // This is the most common case: user says first part of question
-                // Lowered threshold to 15 chars to catch more matches
-                if (qTextLower.startsWith(userTextLower) && userTextLower.length >= 15) {
-                  return true;
-                }
-                
-                // AGGRESSIVE: Check if question text starts with user text (allowing for punctuation/word ending differences)
-                // This handles "verbinding" vs "verbindingen" cases
-                if (userTextLower.length >= 20) {
-                  // Remove trailing punctuation from both
-                  const userTextClean = userTextLower.replace(/[.,;:!?]+$/, '').trim();
-                  const qTextClean = qTextLower.replace(/[.,;:!?]+$/, '').trim();
-              
-                  // Check if question starts with user text (exact match)
-                  if (qTextClean.startsWith(userTextClean) && userTextClean.length >= 20) {
-                    return true;
+                    matchedQuestion = currentSuggestedQuestions.find(
+                      (q: { id: string; text: string; tags: string[] }) => {
+                        const qTextLower = q.text.toLowerCase().trim();
+                        return false; // TEMP: ensures valid boolean return
+                      }
+                    );
                   }
-              
-                  // Check if question starts with first 90% of user text (handles minor truncation)
-                  if (userTextClean.length >= 25) {
-                    const userText90 = userTextClean.substring(0, Math.floor(userTextClean.length * 0.9));
-                    if (qTextClean.startsWith(userText90) && userText90.length >= 20) {
-                      return true;
-                    }
-                  }
-                }
-                
-                // Check if user text starts with question text (less common but possible)
-                if (userTextLower.startsWith(qTextLower) && qTextLower.length >= 15) {
-                  return true;
-                }
-                
-                // Check if user text is contained in question text (at least 15 chars for reliability)
-                // This catches truncated speech input
-                if (userTextLower.length >= 15 && qTextLower.includes(userTextLower)) {
-                  return true;
-                }
-                
-                // Also check with normalized punctuation (remove trailing punctuation)
-                if (userTextLower.length >= 20) {
-                  const userTextNormalized = userTextLower.replace(/[.,;:!?]+$/, '').trim();
-                  if (userTextNormalized.length >= 15 && qTextLower.includes(userTextNormalized)) {
-                    return true;
-                  }
-                }
-                
-                // Check if question text is contained in user text (at least 15 chars)
-                if (qTextLower.length >= 15 && userTextLower.includes(qTextLower)) {
-                  return true;
-                }
-                
-                // IMPROVED: Check if user text matches the beginning of question text
-                // This handles cases where user says "verbinding" but question has "verbindingen"
-                // Compare first N chars where N is the length of user text
-                if (userTextLower.length >= 20) {
-                  const questionStart = qTextLower.substring(0, Math.min(qTextLower.length, userTextLower.length + 5));
-                  // Check if question start is very similar to user text (allowing for small differences at the end)
-                  // For example: "verbinding" vs "verbindingen" - first 10 chars match exactly
-                  const minCompareLen = Math.min(userTextLower.length - 3, questionStart.length); // Allow 3 char difference
-                  if (minCompareLen >= 15) {
-                    const userStart = userTextLower.substring(0, minCompareLen);
-                    const qStart = questionStart.substring(0, minCompareLen);
-                    if (userStart === qStart) {
-                      return true; // First part matches, likely the same question
-                    }
-                  }
-                  // Also check if question starts with user text (allowing for word endings)
-                  // Remove trailing punctuation and compare
-                  const userTextClean2 = userTextLower.replace(/[.,;:!?]+$/, '').trim();
-                  const questionStartClean = questionStart.replace(/[.,;:!?]+$/, '').trim();
-                  if (questionStartClean.startsWith(userTextClean2) && userTextClean2.length >= 20) {
-                    return true;
-                  }
-                }
-                
-                // Check if first part of question matches (for speech recognition truncation)
-                // Match first 30+ chars of question with user text
-                if (userTextLower.length >= 15) {
-                  const questionStart = qTextLower.substring(0, Math.min(qTextLower.length, userTextLower.length + 10));
-                  if (questionStart.includes(userTextLower) || userTextLower.includes(questionStart.substring(0, userTextLower.length))) {
-                    return true;
-                  }
-                }
-                
-                // Special case: check if first 50 chars match (for speech recognition truncation/variations)
-                // This handles cases where user says "bes" instead of "beschermen" etc.
-                const userFirst50 = userTextLower.substring(0, 50);
-                const qFirst50 = qTextLower.substring(0, 50);
-                if (userFirst50.length >= 30) {
-                  // Check if question starts with user's first 50 chars
-                  if (qTextLower.startsWith(userFirst50)) {
-                    return true;
-                  }
-                  // Check if user starts with question's first 50 chars
-                  if (userTextLower.startsWith(qFirst50)) {
-                    return true;
-                  }
-                  // Check similarity of first 50 chars (at least 80% match)
-                  let matchingChars = 0;
-                  const minLen = Math.min(userFirst50.length, qFirst50.length);
-                  for (let i = 0; i < minLen; i++) {
-                    if (userFirst50[i] === qFirst50[i]) matchingChars++;
-                  }
-                  const similarity = matchingChars / minLen;
-                  if (similarity >= 0.8 && minLen >= 30) {
-                    return true;
-                  }
-                }
-                
-                return false;
-              });
-              
-              questionId = matchedQuestion?.id;
-              
-              // If still no match, try more aggressive matching for truncated speech input
-              if (!questionId && userTextLower.length >= 15) {
-                // eslint-disable-next-line no-console
-                console.log('[RAG] First match attempt failed, trying aggressive matching for truncated input...');
-                matchedQuestion = currentSuggestedQuestions.find((q: { id: string; text: string; tags: string[] }) => {
-                  const qTextLower = q.text.toLowerCase().trim();
-                  const qFirst40 = qTextLower.substring(0, 40);
-                  const userFirst40 = userTextLower.substring(0, Math.min(40, userTextLower.length));
-              
-                  // Check if first parts match significantly
-                  if (qFirst40.includes(userTextLower) || userTextLower.includes(qFirst40)) {
-                    return true;
-                  }
-              
-                  // Check character-by-character similarity of first 30 chars
-                  const compareLen = Math.min(30, Math.min(qFirst40.length, userFirst40.length));
-                  if (compareLen >= 15) {
-                    let matches = 0;
-                    for (let i = 0; i < compareLen; i++) {
-                      if (qFirst40[i] === userFirst40[i]) matches++;
-                    }
-                    const similarity = matches / compareLen;
-                    if (similarity >= 0.75) { // 75% match
-                      return true;
-                    }
-                  }
-              
-                  return false;
-                });
-                questionId = matchedQuestion?.id;
-                if (questionId) {
-                  // eslint-disable-next-line no-console
-                  console.log('[RAG] Found questionId via aggressive matching:', questionId);
-                }
-              }
+    
+// Fallback: Find questionId by matching text with suggested questions
+const currentSuggestedQuestions = suggestedQuestionsWithIdsRef.current;
+
+if (currentSuggestedQuestions && currentSuggestedQuestions.length > 0) {
+  const userText = questionText.trim();
+  const userTextLower = userText.toLowerCase();
+
+  const matchesSuggestedQuestion = (qTextLower: string, userTextLower: string): boolean => {
+    if (!qTextLower || !userTextLower) return false;
+
+    if (qTextLower === userTextLower) return true;
+
+    if (userTextLower.length >= 15 && qTextLower.startsWith(userTextLower)) return true;
+    if (qTextLower.length >= 15 && userTextLower.startsWith(qTextLower)) return true;
+    if (userTextLower.length >= 15 && qTextLower.includes(userTextLower)) return true;
+    if (qTextLower.length >= 15 && userTextLower.includes(qTextLower)) return true;
+
+    if (userTextLower.length >= 20) {
+      const userClean = userTextLower.replace(/[.,;:!?]+$/g, '').trim();
+      const qClean = qTextLower.replace(/[.,;:!?]+$/g, '').trim();
+
+      if (userClean.length >= 15 && qClean.includes(userClean)) return true;
+      if (userClean.length >= 20 && qClean.startsWith(userClean)) return true;
+
+      if (userClean.length >= 25) {
+        const user90 = userClean.slice(0, Math.floor(userClean.length * 0.9));
+        if (user90.length >= 20 && qClean.startsWith(user90)) return true;
+      }
+    }
+
+    const userFirst50 = userTextLower.slice(0, 50);
+    const qFirst50 = qTextLower.slice(0, 50);
+    const minLen = Math.min(userFirst50.length, qFirst50.length);
+
+    if (minLen >= 30) {
+      let matching = 0;
+      for (let i = 0; i < minLen; i++) {
+        if (userFirst50[i] === qFirst50[i]) matching++;
+      }
+      if (matching / minLen >= 0.8) return true;
+    }
+
+    return false;
+  };
+
+  let matchedQuestion =
+    currentSuggestedQuestions.find(q => q.text.trim() === userText) ??
+    currentSuggestedQuestions.find(q => q.text.toLowerCase().trim() === userTextLower) ??
+    currentSuggestedQuestions.find(q => {
+      const qTextLower = q.text.toLowerCase().trim();
+      return matchesSuggestedQuestion(qTextLower, userTextLower);
+    });
+
+  questionId = matchedQuestion?.id;
+
+  if (!questionId && userTextLower.length >= 15) {
+    matchedQuestion = currentSuggestedQuestions.find(q => {
+      const qTextLower = q.text.toLowerCase().trim();
+      const qFirst40 = qTextLower.slice(0, 40);
+      const userFirst40 = userTextLower.slice(0, Math.min(40, userTextLower.length));
+
+      if (qFirst40.includes(userTextLower) || userTextLower.includes(qFirst40)) return true;
+
+      const compareLen = Math.min(30, Math.min(qFirst40.length, userFirst40.length));
+      if (compareLen >= 15) {
+        let matches = 0;
+        for (let i = 0; i < compareLen; i++) {
+          if (qFirst40[i] === userFirst40[i]) matches++;
+        }
+        return matches / compareLen >= 0.75;
+      }
+
+      return false;
+    });
+
+    questionId = matchedQuestion?.id;
+  }
+}
+
               
               // eslint-disable-next-line no-console
               console.log('[RAG] Question matching (text-based):', { 
@@ -941,8 +875,8 @@ export default function DigitalShadow() {
                 })
               });
                 } else {
-              // eslint-disable-next-line no-console
-              console.log('[RAG] No suggestedQuestionsWithIds available for text matching', { hasRef: !!suggestedQuestionsWithIdsRef.current, length: currentSuggestedQuestions?.length });
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG] No suggestedQuestionsWithIds available for text matching', { hasRef: !!suggestedQuestionsWithIdsRef.current, length: currentSuggestedQuestions?.length });
                 }
               }
           
@@ -960,261 +894,261 @@ export default function DigitalShadow() {
                 let preprompts = await getPreprompts(questionId, questionLang);
                 // eslint-disable-next-line no-console
                 console.log('[RAG] Preprompts lookup result:', { 
-              found: !!preprompts, 
-              burstsCount: preprompts?.bursts.length, 
-              hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl),
-              language: questionLang,
-              note: questionLang === 'en' ? 'English: will generate TTS on-the-fly' : 'Dutch: will use pregenerated audio if available'
+                  found: !!preprompts, 
+                  burstsCount: preprompts?.bursts.length, 
+                  hasAudioUrls: preprompts?.bursts.every((b) => b.audioUrl),
+                  language: questionLang,
+                  note: questionLang === 'en' ? 'English: will generate TTS on-the-fly' : 'Dutch: will use pregenerated audio if available'
                 });
             
                 if (preprompts && preprompts.bursts.length > 0) {
-              prepromptsUsed = true; // Mark that we're using preprompts
-              // eslint-disable-next-line no-console
-              console.log('[RAG] ✓ Using preprompts for question:', questionId, 'bursts:', preprompts.bursts.length);
-              
-              // Check if audio URLs are available (if not, we'll need to generate them)
-              const hasAudioUrls = preprompts.bursts.every((b) => b.audioUrl);
-              
-              if (hasAudioUrls) {
-                // All audio URLs are available - use preprompts directly!
-                // If audio is disabled, show text with natural typing delay
-                if (!audioEnabledRef.current) {
-                  const hasImage = !!preprompts.imageUrl;
-                  const citationsText = preprompts.citations;
-              
-                  // Show typing indicator
-                  dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
-              
-                  // Add messages with delays to simulate natural texting
-                  let cumulativeDelay = 800;
-              
-                  preprompts.bursts.forEach((burst, index) => {
-                    setTimeout(() => {
+                  prepromptsUsed = true; // Mark that we're using preprompts
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG] ✓ Using preprompts for question:', questionId, 'bursts:', preprompts.bursts.length);
+                  
+                  // Check if audio URLs are available (if not, we'll need to generate them)
+                  const hasAudioUrls = preprompts.bursts.every((b) => b.audioUrl);
+                  
+                  if (hasAudioUrls) {
+                    // All audio URLs are available - use preprompts directly!
+                    // If audio is disabled, show text with natural typing delay
+                    if (!audioEnabledRef.current) {
+                      const hasImage = !!preprompts.imageUrl;
+                      const citationsText = preprompts.citations;
+                  
+                      // Show typing indicator
+                      dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+                  
+                      // Add messages with delays to simulate natural texting
+                      let cumulativeDelay = 800;
+                  
+                      preprompts.bursts.forEach((burst, index) => {
+                        setTimeout(() => {
+                          const msgId = crypto.randomUUID();
+                          const isLastBurst = index === preprompts.bursts.length - 1;
+                          const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                          dispatchRef.current?.({ 
+                            type: 'ADD_AI_MESSAGE', 
+                            id: msgId, 
+                            text: burst.text,
+                            imageUrl: burstImageUrl
+                          });
+                      
+                          // After last burst, add citations if any
+                          if (isLastBurst) {
+                            if (citationsText) {
+                              setTimeout(() => {
+                                const citationsId = crypto.randomUUID();
+                                dispatchRef.current?.({
+                                  type: 'ADD_AI_MESSAGE',
+                                  id: citationsId,
+                                  text: citationsText,
+                                });
+                            
+                                setTimeout(() => {
+                                  dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                                  startIdleTimerRef.current(60000);
+                                }, 500);
+                              }, hasImage ? 2000 : 1000);
+                            } else {
+                              setTimeout(() => {
+                                dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                                startIdleTimerRef.current(60000);
+                              }, 500);
+                            }
+                          }
+                        }, cumulativeDelay);
+                    
+                        // Calculate delay for next message
+                        if (index < preprompts.bursts.length - 1) {
+                          const nextBurst = preprompts.bursts[index + 1];
+                          cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
+                        }
+                      });
+                  
+                      prepromptsUsed = true; // Mark that we used preprompts
+                      return; // Skip normal RAG flow
+                    }
+                    
+                    // Audio enabled - enqueue preprompted bursts
+                    preprompts.bursts.forEach((burst, index) => {
                       const msgId = crypto.randomUUID();
                       const isLastBurst = index === preprompts.bursts.length - 1;
                       const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                      dispatchRef.current?.({ 
-                        type: 'ADD_AI_MESSAGE', 
-                        id: msgId, 
-                        text: burst.text,
-                        imageUrl: burstImageUrl
-                      });
                   
-                      // After last burst, add citations if any
-                      if (isLastBurst) {
-                        if (citationsText) {
-                          setTimeout(() => {
-                            const citationsId = crypto.randomUUID();
-                            dispatchRef.current?.({
-                              type: 'ADD_AI_MESSAGE',
-                              id: citationsId,
-                              text: citationsText,
-                            });
-                        
-                            setTimeout(() => {
-                              dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                              startIdleTimerRef.current(60000);
-                            }, 500);
-                          }, hasImage ? 2000 : 1000);
-                        } else {
-                          setTimeout(() => {
-                            dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                            startIdleTimerRef.current(60000);
-                          }, 500);
-                        }
-                      }
-                    }, cumulativeDelay);
-                
-                    // Calculate delay for next message
-                    if (index < preprompts.bursts.length - 1) {
-                      const nextBurst = preprompts.bursts[index + 1];
-                      cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
-                    }
-                  });
-              
-                  prepromptsUsed = true; // Mark that we used preprompts
-                  return; // Skip normal RAG flow
-                }
-                
-                // Audio enabled - enqueue preprompted bursts
-                preprompts.bursts.forEach((burst, index) => {
-                  const msgId = crypto.randomUUID();
-                  const isLastBurst = index === preprompts.bursts.length - 1;
-                  const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-              
-                  // eslint-disable-next-line no-console
-                  console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
-              
-                  audioPlayerRef.current?.enqueue({
-                    id: msgId,
-                    text: burst.text,
-                    url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
-                    imageUrl: burstImageUrl
-                  });
-                });
-                
-                // Citations are now handled in settings, not as messages
-                
-                prepromptsUsed = true; // Mark that we used preprompts
-                return; // Skip normal RAG flow
-              } else {
-                // Preprompts exist but audio URLs are missing - generate TTS on-the-fly for missing ones
-                // eslint-disable-next-line no-console
-                console.log('[RAG] Preprompts found but some audio URLs missing, generating TTS on-the-fly...');
-                
-                // Check which bursts have audio URLs and which don't
-                const burstsWithAudio = preprompts.bursts.filter((b) => b.audioUrl);
-                const burstsWithoutAudio = preprompts.bursts.filter((b) => !b.audioUrl);
-                
-                // eslint-disable-next-line no-console
-                console.log('[RAG] Audio status:', { withAudio: burstsWithAudio.length, withoutAudio: burstsWithoutAudio.length });
-                
-                // If audio is disabled, show text with natural typing delay (same as when audio URLs exist)
-                if (!audioEnabledRef.current) {
-                  const hasImage = !!preprompts.imageUrl;
-                  const citationsText = preprompts.citations;
-              
-                  // Show typing indicator
-                  dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
-              
-                  // Add messages with delays to simulate natural texting
-                  let cumulativeDelay = 800;
-              
-                  preprompts.bursts.forEach((burst, index) => {
-                    setTimeout(() => {
-                      const msgId = crypto.randomUUID();
-                      const isLastBurst = index === preprompts.bursts.length - 1;
-                      const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                      dispatchRef.current?.({ 
-                        type: 'ADD_AI_MESSAGE', 
-                        id: msgId, 
-                        text: burst.text,
-                        imageUrl: burstImageUrl
-                      });
-                  
-                      // After last burst, add citations if any
-                      if (isLastBurst) {
-                        if (citationsText) {
-                          setTimeout(() => {
-                            const citationsId = crypto.randomUUID();
-                            dispatchRef.current?.({
-                              type: 'ADD_AI_MESSAGE',
-                              id: citationsId,
-                              text: citationsText,
-                            });
-                        
-                            setTimeout(() => {
-                              dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                              startIdleTimerRef.current(60000);
-                            }, 500);
-                          }, hasImage ? 2000 : 1000);
-                        } else {
-                          setTimeout(() => {
-                            dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                            startIdleTimerRef.current(60000);
-                          }, 500);
-                        }
-                      }
-                    }, cumulativeDelay);
-                
-                    // Calculate delay for next message
-                    if (index < preprompts.bursts.length - 1) {
-                      const nextBurst = preprompts.bursts[index + 1];
-                      cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
-                    }
-                  });
-              
-                  prepromptsUsed = true; // Mark that we used preprompts
-                  return; // Skip normal RAG flow
-                }
-                
-                // Audio enabled - mix pregenerated audio with on-the-fly TTS for missing bursts
-                // First, enqueue bursts that already have audio URLs
-                for (let i = 0; i < preprompts.bursts.length; i++) {
-                  const burst = preprompts.bursts[i];
-                  if (burst.audioUrl) {
-                    const msgId = crypto.randomUUID();
-                    const isLastBurst = i === preprompts.bursts.length - 1;
-                    const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                    // eslint-disable-next-line no-console
-                    console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
-                    audioPlayerRef.current?.enqueue({ 
-                      id: msgId, 
-                      text: burst.text, 
-                      url: burst.audioUrl,
-                      imageUrl: burstImageUrl
-                    });
-                  }
-                }
-                
-                // Then, generate TTS on-the-fly for bursts without audio URLs
-                if (burstsWithoutAudio.length > 0) {
-                  // eslint-disable-next-line no-console
-                  console.log('[RAG][PREPROMPT] Generating TTS for', burstsWithoutAudio.length, 'missing bursts');
-              
-                  const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
-                    try {
-                      const { audioUrl } = await postTTS(burst.text);
-                      return { success: true, burst, originalIndex, audioUrl };
-                    } catch (err) {
                       // eslint-disable-next-line no-console
-                      console.error('[RAG][TTS] preprompt burst TTS failed', { originalIndex, err });
-                      return { success: false, burst, originalIndex };
+                      console.log('[RAG][PREPROMPT] enqueue burst', { index, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
+                  
+                      audioPlayerRef.current?.enqueue({
+                        id: msgId,
+                        text: burst.text,
+                        url: burst.audioUrl!, // We know it exists because hasAudioUrls is true
+                        imageUrl: burstImageUrl
+                      });
+                    });
+                    
+                    // Citations are now handled in settings, not as messages
+                    
+                    prepromptsUsed = true; // Mark that we used preprompts
+                    return; // Skip normal RAG flow
+                  } else {
+                    // Preprompts exist but audio URLs are missing - generate TTS on-the-fly for missing ones
+                    // eslint-disable-next-line no-console
+                    console.log('[RAG] Preprompts found but some audio URLs missing, generating TTS on-the-fly...');
+                    
+                    // Check which bursts have audio URLs and which don't
+                    const burstsWithAudio = preprompts.bursts.filter((b) => b.audioUrl);
+                    const burstsWithoutAudio = preprompts.bursts.filter((b) => !b.audioUrl);
+                    
+                    // eslint-disable-next-line no-console
+                    console.log('[RAG] Audio status:', { withAudio: burstsWithAudio.length, withoutAudio: burstsWithoutAudio.length });
+                    
+                    // If audio is disabled, show text with natural typing delay (same as when audio URLs exist)
+                    if (!audioEnabledRef.current) {
+                      const hasImage = !!preprompts.imageUrl;
+                      const citationsText = preprompts.citations;
+                  
+                      // Show typing indicator
+                      dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+                  
+                      // Add messages with delays to simulate natural texting
+                      let cumulativeDelay = 800;
+                  
+                      preprompts.bursts.forEach((burst, index) => {
+                        setTimeout(() => {
+                          const msgId = crypto.randomUUID();
+                          const isLastBurst = index === preprompts.bursts.length - 1;
+                          const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                          dispatchRef.current?.({ 
+                            type: 'ADD_AI_MESSAGE', 
+                            id: msgId, 
+                            text: burst.text,
+                            imageUrl: burstImageUrl
+                          });
+                      
+                          // After last burst, add citations if any
+                          if (isLastBurst) {
+                            if (citationsText) {
+                              setTimeout(() => {
+                                const citationsId = crypto.randomUUID();
+                                dispatchRef.current?.({
+                                  type: 'ADD_AI_MESSAGE',
+                                  id: citationsId,
+                                  text: citationsText,
+                                });
+                            
+                                setTimeout(() => {
+                                  dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                                  startIdleTimerRef.current(60000);
+                                }, 500);
+                              }, hasImage ? 2000 : 1000);
+                            } else {
+                              setTimeout(() => {
+                                dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                                startIdleTimerRef.current(60000);
+                              }, 500);
+                            }
+                          }
+                        }, cumulativeDelay);
+                    
+                        // Calculate delay for next message
+                        if (index < preprompts.bursts.length - 1) {
+                          const nextBurst = preprompts.bursts[index + 1];
+                          cumulativeDelay += 1000 + (nextBurst.text.length / 10) * 100;
+                        }
+                      });
+                  
+                      prepromptsUsed = true; // Mark that we used preprompts
+                      return; // Skip normal RAG flow
                     }
-                  });
-              
-                  // Wait for TTS and enqueue
-                  try {
-                    const results = await Promise.all(ttsPromises);
-                    for (const result of results) {
-                      if (result.success && result.audioUrl) {
-                        // Find the original index in the full bursts array
-                        const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
+                    
+                    // Audio enabled - mix pregenerated audio with on-the-fly TTS for missing bursts
+                    // First, enqueue bursts that already have audio URLs
+                    for (let i = 0; i < preprompts.bursts.length; i++) {
+                      const burst = preprompts.bursts[i];
+                      if (burst.audioUrl) {
                         const msgId = crypto.randomUUID();
-                        const isLastBurst = originalIndex === preprompts.bursts.length - 1;
+                        const isLastBurst = i === preprompts.bursts.length - 1;
                         const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
                         // eslint-disable-next-line no-console
-                        console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, text: result.burst.text.slice(0, 30), audioUrl: result.audioUrl });
+                        console.log('[RAG][PREPROMPT] enqueue pregenerated burst', { index: i, msgId, text: burst.text.slice(0, 30), audioUrl: burst.audioUrl, imageUrl: burstImageUrl });
                         audioPlayerRef.current?.enqueue({ 
                           id: msgId, 
-                          text: result.burst.text, 
-                          url: result.audioUrl,
-                          imageUrl: burstImageUrl
-                        });
-                      } else {
-                        // If TTS failed, show as text message
-                        const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
-                        const msgId = crypto.randomUUID();
-                        const isLastBurst = originalIndex === preprompts.bursts.length - 1;
-                        const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
-                        // eslint-disable-next-line no-console
-                        console.log('[RAG][PREPROMPT][TTS] TTS failed, showing as text message', { index: originalIndex });
-                        dispatchRef.current?.({ 
-                          type: 'ADD_AI_MESSAGE', 
-                          id: msgId, 
-                          text: result.burst.text,
+                          text: burst.text, 
+                          url: burst.audioUrl,
                           imageUrl: burstImageUrl
                         });
                       }
                     }
-                  } catch (err) {
-                    // eslint-disable-next-line no-console
-                    console.error('[RAG][PREPROMPT] Error generating TTS for missing bursts:', err);
+                    
+                    // Then, generate TTS on-the-fly for bursts without audio URLs
+                    if (burstsWithoutAudio.length > 0) {
+                      // eslint-disable-next-line no-console
+                      console.log('[RAG][PREPROMPT] Generating TTS for', burstsWithoutAudio.length, 'missing bursts');
+                  
+                      const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
+                        try {
+                          const { audioUrl } = await postTTS(burst.text);
+                          return { success: true, burst, originalIndex, audioUrl };
+                        } catch (err) {
+                          // eslint-disable-next-line no-console
+                          console.error('[RAG][TTS] preprompt burst TTS failed', { originalIndex, err });
+                          return { success: false, burst, originalIndex };
+                        }
+                      });
+                  
+                      // Wait for TTS and enqueue
+                      try {
+                        const results = await Promise.all(ttsPromises);
+                        for (const result of results) {
+                          if (result.success && result.audioUrl) {
+                            // Find the original index in the full bursts array
+                            const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
+                            const msgId = crypto.randomUUID();
+                            const isLastBurst = originalIndex === preprompts.bursts.length - 1;
+                            const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                            // eslint-disable-next-line no-console
+                            console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, text: result.burst.text.slice(0, 30), audioUrl: result.audioUrl });
+                            audioPlayerRef.current?.enqueue({ 
+                              id: msgId, 
+                              text: result.burst.text, 
+                              url: result.audioUrl,
+                              imageUrl: burstImageUrl
+                            });
+                          } else {
+                            // If TTS failed, show as text message
+                            const originalIndex = preprompts.bursts.findIndex((b) => b.text === result.burst.text);
+                            const msgId = crypto.randomUUID();
+                            const isLastBurst = originalIndex === preprompts.bursts.length - 1;
+                            const burstImageUrl = (isLastBurst && preprompts.imageUrl) ? preprompts.imageUrl : undefined;
+                            // eslint-disable-next-line no-console
+                            console.log('[RAG][PREPROMPT][TTS] TTS failed, showing as text message', { index: originalIndex });
+                            dispatchRef.current?.({ 
+                              type: 'ADD_AI_MESSAGE', 
+                              id: msgId, 
+                              text: result.burst.text,
+                              imageUrl: burstImageUrl
+                            });
+                          }
+                        }
+                      } catch (err) {
+                        // eslint-disable-next-line no-console
+                        console.error('[RAG][PREPROMPT] Error generating TTS for missing bursts:', err);
+                      }
+                    }
+                    
+                    prepromptsUsed = true;
+                    return; // Skip normal RAG flow
                   }
-                }
-                
-                prepromptsUsed = true;
-                return; // Skip normal RAG flow
-              }
-                } else {
+            } else {
               // eslint-disable-next-line no-console
               console.log('[RAG] Preprompts not found for questionId:', questionId, 'language:', questionLang, ', falling through to RAG');
               // Fall through to RAG generation
-                }
-            } else {
-                // eslint-disable-next-line no-console
-                console.log('[RAG] No questionId found (unique question), using normal RAG flow');
-              }
+            }
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('[RAG] No questionId found (unique question), using normal RAG flow');
+          }
           
               // CRITICAL: If we found preprompts and used them, we should have returned already
               // If we reach here, it means either:
@@ -1236,220 +1170,220 @@ export default function DigitalShadow() {
               // eslint-disable-next-line no-console
               console.log('[RAG] Starting normal RAG flow (no preprompts found or questionId not matched)');
               try {
-                  const search = await fetchJSON('/api/search', { q: questionText, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
-                  if (!search?.ok) {
-              throw new Error(search?.error || 'search failed');
-                  }
-                  // Debug: log retrieval stats for accuracy tuning
-                  {
-              const scores: number[] = Array.isArray(search.sources) ? search.sources.map((s: any) => s.score) : [];
-              const top = scores[0] ?? 0;
-              const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-              const min = scores.length ? Math.min(...scores) : 0;
-              // eslint-disable-next-line no-console
-                console.log('[RAG]', {
-                  query: questionText,
-                  matches: scores.length,
-                  topScore: Number(top.toFixed(3)),
-                  avgScore: Number(avg.toFixed(3)),
-                  minScore: Number(min.toFixed(3)),
-                  threshold: flags.RAG_MIN_SCORE,
-                  strict: flags.STRICT_RAG_ONLY,
-              });
-                  }
-                  const topScore: number = Array.isArray(search.sources) && search.sources[0]?.score ? search.sources[0].score : 0;
-                  const hasEvidence = (search.chunks?.length ?? 0) > 0 && topScore >= (flags.RAG_MIN_SCORE ?? 0.75);
+                const search = await fetchJSON('/api/search', { q: questionText, topK: 8, minSimilarity: 0, projectId: PROJECT_ID });
+                if (!search?.ok) {
+                  throw new Error(search?.error || 'search failed');
+                }
+                // Debug: log retrieval stats for accuracy tuning
+                {
+                  const scores: number[] = Array.isArray(search.sources) ? search.sources.map((s: any) => s.score) : [];
+                  const top = scores[0] ?? 0;
+                  const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+                  const min = scores.length ? Math.min(...scores) : 0;
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG]', {
+                    query: questionText,
+                    matches: scores.length,
+                    topScore: Number(top.toFixed(3)),
+                    avgScore: Number(avg.toFixed(3)),
+                    minScore: Number(min.toFixed(3)),
+                    threshold: flags.RAG_MIN_SCORE,
+                    strict: flags.STRICT_RAG_ONLY,
+                  });
+                }
+                const topScore: number = Array.isArray(search.sources) && search.sources[0]?.score ? search.sources[0].score : 0;
+                const hasEvidence = (search.chunks?.length ?? 0) > 0 && topScore >= (flags.RAG_MIN_SCORE ?? 0.75);
 
-                  // Heuristic: sensitive question detection
-                  const qLower = questionText.toLowerCase();
-                  const isSensitive =
-                /\b(naam|name|locatie|location|adres|address|telefoon|phone|contact|identiteit|identity|waar woon|where do you live|wie ben je|who are you)\b/.test(qLower);
+                // Heuristic: sensitive question detection
+                const qLower = questionText.toLowerCase();
+                const isSensitive =
+                  /\b(naam|name|locatie|location|adres|address|telefoon|phone|contact|identiteit|identity|waar woon|where do you live|wie ben je|who are you)\b/.test(qLower);
 
-                  if (!hasEvidence && flags.STRICT_RAG_ONLY) {
-              // eslint-disable-next-line no-console
-                console.log('[RAG] gated: insufficient evidence', { topScore, threshold: flags.RAG_MIN_SCORE });
-              const fallback = removeTrailingPeriods(isSensitive
-                  ? (questionLang === 'nl' 
+                if (!hasEvidence && flags.STRICT_RAG_ONLY) {
+                    // eslint-disable-next-line no-console
+                    console.log('[RAG] gated: insufficient evidence', { topScore, threshold: flags.RAG_MIN_SCORE });
+                    const fallback = removeTrailingPeriods(isSensitive
+                      ? (questionLang === 'nl' 
+                          ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
+                          : 'I can\'t go into that, I\'m afraid they\'ll find me.')
+                      : (questionLang === 'nl'
+                          ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
+                          : 'Hmm, sorry I\'m not the right person to answer that.'));
+                
+                    // If audio is disabled, show text with natural typing delay
+                    if (!audioEnabledRef.current) {
+                      // Show typing indicator
+                      dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
+                      
+                      // Calculate typing delay based on text length
+                      const typingDelay = Math.min(800 + (fallback.length / 10) * 200, 2500);
+                      
+                      setTimeout(() => {
+                        const msgId = crypto.randomUUID();
+                        dispatchRef.current?.({ type: 'ADD_AI_MESSAGE', id: msgId, text: fallback });
+                
+                        // Set UI back to idle after message is shown
+                        setTimeout(() => {
+                          dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                          startIdleTimerRef.current(60000);
+                        }, 500);
+                      }, typingDelay);
+                      return;
+                    }
+                
+                    try {
+                      // Generate TTS first, then enqueue; text bubble is added when audio starts
+                      const { audioUrl } = await postTTS(fallback);
+                      const msgId = crypto.randomUUID();
+                      // eslint-disable-next-line no-console
+                      console.log('[RAG][TTS] enqueue fallback burst', { msgId, text: fallback, audioUrl });
+                      audioPlayerRef.current?.enqueue({ id: msgId, text: fallback, url: audioUrl });
+                    } catch (err) {
+                      // eslint-disable-next-line no-console
+                      console.error('[RAG][TTS] fallback TTS failed', err);
+                    }
+                    return;
+                  }
+
+                const messages = buildHenryRAGPrompt(questionText, search.chunks || [], questionLang);
+                const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-4o-mini', temperature: 0 });
+                if (!answer?.ok) {
+                  throw new Error(answer?.error || 'answer failed');
+                }
+                // eslint-disable-next-line no-console
+                console.log('[RAG] answering with sources; temperature=0');
+                let fullText = answer.text || (isSensitive
+                  ? (questionLang === 'nl'
                       ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                       : 'I can\'t go into that, I\'m afraid they\'ll find me.')
                   : (questionLang === 'nl'
                       ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
                       : 'Hmm, sorry I\'m not the right person to answer that.'));
+            
+                // Don't remove periods here - let splitIntoBursts handle it after splitting
+                // This preserves sentence boundaries for proper message splitting
+            
+                // Check if this prompt should have an image
+                const imageUrl = getImageForPrompt(questionText);
+                if (imageUrl) {
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG] Prompt requires image:', imageUrl);
+                  // Store image URL to add final message after image
+                  pendingImageRef.current = imageUrl;
+                } else {
+                  pendingImageRef.current = null;
+                }
+            
+                const bursts = splitIntoBursts(fullText, 3);
+                // eslint-disable-next-line no-console
+                console.log('[RAG] answer bursts', bursts);
+            
+                // Accumulate unique sources for display in settings
+                if (Array.isArray(search.sources) && search.sources.length > 0) {
+                  // Extract unique sources by documentId
+                  setAllSources(prev => {
+                    const existingIds = new Set(prev.map(s => s.documentId));
+                    const newSources = search.sources
+                      .filter((s: any) => s.documentId && !existingIds.has(String(s.documentId)))
+                      .map((s: any) => ({
+                        documentId: String(s.documentId),
+                        title: s.title || s.sourceId || String(s.documentId),
+                        sourceId: s.sourceId || null,
+                      }));
+                    return [...prev, ...newSources];
+                  });
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG] Accumulated sources', { 
+                    sourcesCount: search.sources.length, 
+                    chunksCount: search.chunks?.length || 0,
+                  });
+                } else {
+                  // eslint-disable-next-line no-console
+                  console.log('[RAG] No sources found', { 
+                    sources: search.sources,
+                    hasSources: Array.isArray(search.sources)
+                  });
+                }
+            
+                // If audio is disabled, show messages without TTS but with natural delays
+                if (!audioEnabledRef.current) {
+                  // Calculate typing delay based on text length (simulate human typing speed)
+                  // Average typing speed: ~200 characters per minute = ~3.3 chars/sec
+                  // Add base delay of 800ms + 200ms per 10 characters
+                  const calculateTypingDelay = (text: string): number => {
+                    const baseDelay = 800; // Base delay before first message
+                    const charDelay = (text.length / 10) * 200; // ~200ms per 10 chars
+                    return Math.min(baseDelay + charDelay, 3000); // Cap at 3 seconds
+                  };
                 
-              // If audio is disabled, show text with natural typing delay
-              if (!audioEnabledRef.current) {
+                  // Capture values before setTimeout closures
+                  const hasImage = !!imageUrl;
+                
                   // Show typing indicator
                   dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
-                  
-                  // Calculate typing delay based on text length
-                  const typingDelay = Math.min(800 + (fallback.length / 10) * 200, 2500);
-                  
-                  setTimeout(() => {
-                    const msgId = crypto.randomUUID();
-                    dispatchRef.current?.({ type: 'ADD_AI_MESSAGE', id: msgId, text: fallback });
                 
-                    // Set UI back to idle after message is shown
+                  // Add messages with delays to simulate natural texting
+                  let cumulativeDelay = calculateTypingDelay(bursts[0] || '');
+                
+                  bursts.forEach((chunk, index) => {
                     setTimeout(() => {
-                      dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                      startIdleTimerRef.current(60000);
-                    }, 500);
-                  }, typingDelay);
-                  return;
-              }
+                      const msgId = crypto.randomUUID();
+                      const isLastBurst = index === bursts.length - 1;
+                      const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
+                      dispatchRef.current?.({ 
+                        type: 'ADD_AI_MESSAGE', 
+                        id: msgId, 
+                        text: chunk,
+                        imageUrl: burstImageUrl
+                      });
                 
-              try {
-                  // Generate TTS first, then enqueue; text bubble is added when audio starts
-                  const { audioUrl } = await postTTS(fallback);
-                  const msgId = crypto.randomUUID();
-                  // eslint-disable-next-line no-console
-                  console.log('[RAG][TTS] enqueue fallback burst', { msgId, text: fallback, audioUrl });
-                  audioPlayerRef.current?.enqueue({ id: msgId, text: fallback, url: audioUrl });
-              } catch (err) {
-                  // eslint-disable-next-line no-console
-                  console.error('[RAG][TTS] fallback TTS failed', err);
-              }
-              return;
-                  }
-
-                  const messages = buildHenryRAGPrompt(questionText, search.chunks || [], questionLang);
-                  const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-4o-mini', temperature: 0 });
-                  if (!answer?.ok) {
-              throw new Error(answer?.error || 'answer failed');
-                  }
-                  // eslint-disable-next-line no-console
-                  console.log('[RAG] answering with sources; temperature=0');
-                  let fullText = answer.text || (isSensitive
-                ? (questionLang === 'nl'
-                    ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
-                    : 'I can\'t go into that, I\'m afraid they\'ll find me.')
-                : (questionLang === 'nl'
-                    ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
-                    : 'Hmm, sorry I\'m not the right person to answer that.'));
-            
-                  // Don't remove periods here - let splitIntoBursts handle it after splitting
-                  // This preserves sentence boundaries for proper message splitting
-            
-                  // Check if this prompt should have an image
-                  const imageUrl = getImageForPrompt(questionText);
-                  if (imageUrl) {
-              // eslint-disable-next-line no-console
-                console.log('[RAG] Prompt requires image:', imageUrl);
-              // Store image URL to add final message after image
-                pendingImageRef.current = imageUrl;
-                  } else {
-                pendingImageRef.current = null;
-                  }
-            
-                  const bursts = splitIntoBursts(fullText, 3);
-                  // eslint-disable-next-line no-console
-                  console.log('[RAG] answer bursts', bursts);
-            
-                  // Accumulate unique sources for display in settings
-                  if (Array.isArray(search.sources) && search.sources.length > 0) {
-              // Extract unique sources by documentId
-                setAllSources(prev => {
-                  const existingIds = new Set(prev.map(s => s.documentId));
-                  const newSources = search.sources
-                    .filter((s: any) => s.documentId && !existingIds.has(String(s.documentId)))
-                    .map((s: any) => ({
-                      documentId: String(s.documentId),
-                      title: s.title || s.sourceId || String(s.documentId),
-                      sourceId: s.sourceId || null,
-                    }));
-                  return [...prev, ...newSources];
-              });
-              // eslint-disable-next-line no-console
-                console.log('[RAG] Accumulated sources', { 
-                  sourcesCount: search.sources.length, 
-                  chunksCount: search.chunks?.length || 0,
-              });
-                  } else {
-              // eslint-disable-next-line no-console
-                console.log('[RAG] No sources found', { 
-                  sources: search.sources,
-                  hasSources: Array.isArray(search.sources)
-              });
-                  }
-            
-                  // If audio is disabled, show messages without TTS but with natural delays
-                  if (!audioEnabledRef.current) {
-              // Calculate typing delay based on text length (simulate human typing speed)
-              // Average typing speed: ~200 characters per minute = ~3.3 chars/sec
-              // Add base delay of 800ms + 200ms per 10 characters
-              const calculateTypingDelay = (text: string): number => {
-                  const baseDelay = 800; // Base delay before first message
-                  const charDelay = (text.length / 10) * 200; // ~200ms per 10 chars
-                  return Math.min(baseDelay + charDelay, 3000); // Cap at 3 seconds
-              };
-                
-              // Capture values before setTimeout closures
-              const hasImage = !!imageUrl;
-                
-              // Show typing indicator
-                dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
-                
-              // Add messages with delays to simulate natural texting
-              let cumulativeDelay = calculateTypingDelay(bursts[0] || '');
-                
-                bursts.forEach((chunk, index) => {
-                  setTimeout(() => {
-                    const msgId = crypto.randomUUID();
-                    const isLastBurst = index === bursts.length - 1;
-                    const burstImageUrl = (isLastBurst && imageUrl) ? imageUrl : undefined;
-                    dispatchRef.current?.({ 
-                      type: 'ADD_AI_MESSAGE', 
-                      id: msgId, 
-                      text: chunk,
-                      imageUrl: burstImageUrl
-                    });
-                
-                    // After last burst, add final message and citations
-                    if (isLastBurst) {
-                      // Add final message after image if needed
-                      if (hasImage) {
+                      // After last burst, add final message and citations
+                      if (isLastBurst) {
+                        // Add final message after image if needed
+                        if (hasImage) {
+                          setTimeout(() => {
+                            const finalText = currentQuestionLangRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
+                            const finalMsgId = crypto.randomUUID();
+                            dispatchRef.current?.({ 
+                              type: 'ADD_AI_MESSAGE', 
+                              id: finalMsgId, 
+                              text: finalText 
+                            });
+                          }, 1500); // 1.5 second delay after image
+                        }
+                  
+                        // Citations are now displayed in settings, not as messages
+                        // Set UI back to idle after all messages are shown
                         setTimeout(() => {
-                          const finalText = currentQuestionLangRef.current === 'nl' ? 'dit is hoe het eruitzag' : 'this is what it looked like';
-                          const finalMsgId = crypto.randomUUID();
-                          dispatchRef.current?.({ 
-                            type: 'ADD_AI_MESSAGE', 
-                            id: finalMsgId, 
-                            text: finalText 
-                          });
-                        }, 1500); // 1.5 second delay after image
+                          dispatchRef.current?.({ type: 'AUDIO_ENDED' });
+                          startIdleTimerRef.current(60000);
+                        }, hasImage ? 2000 : 1000);
                       }
+                    }, cumulativeDelay);
                   
-                      // Citations are now displayed in settings, not as messages
-                      // Set UI back to idle after all messages are shown
-                      setTimeout(() => {
-                        dispatchRef.current?.({ type: 'AUDIO_ENDED' });
-                        startIdleTimerRef.current(60000);
-                      }, hasImage ? 2000 : 1000);
-                    }
-                  }, cumulativeDelay);
-                  
-                  // Calculate delay for next message (1-2 seconds between messages)
-                  if (index < bursts.length - 1) {
-                    const nextChunk = bursts[index + 1];
-                    cumulativeDelay += 1000 + (nextChunk.length / 10) * 100; // 1-2 seconds between messages
-                  }
-              });
-                
-              return;
-                  }
-            
-                  // Start TTS generation for all bursts in parallel (low latency)
-                  // Enqueue them in order as they complete, but don't wait for all to finish
-                  // This maintains low latency (first burst starts immediately) while preserving order
-                  const burstPromises = bursts.map(async (chunk, index) => {
-                    try {
-                      const { audioUrl } = await postTTS(chunk);
-                      return { success: true, index, chunk, audioUrl };
-                    } catch (err) {
-                      // eslint-disable-next-line no-console
-                      console.error('[RAG][TTS] burst TTS failed', { index, err });
-                      return { success: false, index };
+                    // Calculate delay for next message (1-2 seconds between messages)
+                    if (index < bursts.length - 1) {
+                      const nextChunk = bursts[index + 1];
+                      cumulativeDelay += 1000 + (nextChunk.length / 10) * 100; // 1-2 seconds between messages
                     }
                   });
+                
+                  return;
+                }
+            
+                // Start TTS generation for all bursts in parallel (low latency)
+                // Enqueue them in order as they complete, but don't wait for all to finish
+                // This maintains low latency (first burst starts immediately) while preserving order
+                const burstPromises = bursts.map(async (chunk, index) => {
+                  try {
+                    const { audioUrl } = await postTTS(chunk);
+                    return { success: true, index, chunk, audioUrl };
+                  } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('[RAG][TTS] burst TTS failed', { index, err });
+                    return { success: false, index };
+                  }
+                });
             
                 // Enqueue bursts sequentially in order, but start as soon as each is ready
                 // This way burst 0 can start playing immediately while others are still generating
@@ -1477,11 +1411,11 @@ export default function DigitalShadow() {
                     }
                   }
                 })();
-              } catch (e: any) {
-                // eslint-disable-next-line no-console
-                console.error('[RAG] Error in asyncHandler:', e);
-                setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
-              }
+                } catch (e: any) {
+                  // eslint-disable-next-line no-console
+                  console.error('[RAG] Error in asyncHandler:', e);
+                  setToast(languageRef.current === 'nl' ? 'Netwerkfout' : 'Network error');
+                }
             };
             
           // eslint-disable-next-line no-console
@@ -1496,7 +1430,7 @@ export default function DigitalShadow() {
           
           // eslint-disable-next-line no-console
           console.log('[DISPATCH] Step G: setTimeout scheduled successfully');
-          }, 0);
+        }, 0);
         } catch (err: any) {
           // eslint-disable-next-line no-console
           console.error('[DISPATCH] FATAL ERROR scheduling asyncHandler:', err);
