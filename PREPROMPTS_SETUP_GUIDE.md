@@ -160,7 +160,7 @@ Dit toont:
 - `danger-guilt-left-behind`
 - `cut-contact-parents`
 - `freedom-means-loss`
-- `girlfriend-shared-fear`
+- `wife-shared-fear`
 - `military-exercises-online-threats`
 - `how-safe-really`
 - `message-to-taiwanese`

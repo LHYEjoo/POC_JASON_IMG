@@ -1198,6 +1198,13 @@ if (currentSuggestedQuestions.length > 0) {
                       ? preprompts.imageIndex 
                       : (preprompts.bursts.length - 1); // Default to last burst
                     const imageUrl = preprompts.imageUrl || undefined;
+                    // eslint-disable-next-line no-console
+                    console.log('[RAG][PREPROMPT] Image configuration', { 
+                      imageIndex, 
+                      totalBursts: preprompts.bursts.length, 
+                      hasImageUrl: !!imageUrl,
+                      imageIndexFromConfig: preprompts.imageIndex 
+                    });
                     
                     // Add 2-second delay before first message for pregenerated answers
                     setTimeout(async () => {
@@ -1228,6 +1235,15 @@ if (currentSuggestedQuestions.length > 0) {
                         const ttsPromises = burstsWithoutAudio.map(async (burst, originalIndex) => {
                           try {
                             // Use original text with punctuation for TTS (better intonation)
+                            // eslint-disable-next-line no-console
+                            console.log('[RAG][PREPROMPT][TTS] Generating TTS for burst', { 
+                              originalIndex, 
+                              textLength: burst.text.length,
+                              textPreview: burst.text.slice(0, 50),
+                              hasPeriod: burst.text.includes('.'),
+                              hasQuestion: burst.text.includes('?'),
+                              hasExclamation: burst.text.includes('!')
+                            });
                             const { audioUrl } = await postTTS(burst.text);
                             // Create display version without trailing periods
                             const displayText = removeTrailingPeriods(burst.text);
@@ -1249,7 +1265,17 @@ if (currentSuggestedQuestions.length > 0) {
                               const msgId = crypto.randomUUID();
                               const shouldHaveImage = originalIndex === imageIndex && imageUrl;
                               // eslint-disable-next-line no-console
-                              console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { index: originalIndex, msgId, display: result.displayText.slice(0, 30), tts: result.burst.text.slice(0, 30), audioUrl: result.audioUrl, imageUrl: shouldHaveImage ? imageUrl : undefined });
+                              console.log('[RAG][PREPROMPT][TTS] enqueue generated burst', { 
+                                index: originalIndex, 
+                                msgId, 
+                                display: result.displayText.slice(0, 30), 
+                                tts: result.burst.text.slice(0, 50),
+                                ttsEndsWith: result.burst.text.slice(-5),
+                                audioUrl: result.audioUrl, 
+                                imageIndex,
+                                shouldHaveImage,
+                                imageUrl: shouldHaveImage ? imageUrl : undefined 
+                              });
                               // Use display text (without trailing periods) for the message shown to user
                               audioPlayerRef.current?.enqueue({ 
                                 id: msgId, 
@@ -1900,10 +1926,11 @@ if (currentSuggestedQuestions.length > 0) {
 
               <div className="space-y-4">
                 {ctx.messages.map((m: { id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }, index: number) => {
-                  // Show avatar only if this is the first AI message in a sequence (previous message is user or this is the first message)
-                  const isFirstInSequence = m.role === 'ai' && (
-                    index === 0 || 
-                    ctx.messages[index - 1]?.role === 'user'
+                  // Show avatar only if this is the LAST AI message in a sequence
+                  // A sequence is consecutive AI messages that follow a user message
+                  const isLastInSequence = m.role === 'ai' && (
+                    index === ctx.messages.length - 1 || // Last message overall
+                    ctx.messages[index + 1]?.role === 'user' // Next message is from user (end of AI sequence)
                   );
                   
                   return (
@@ -1911,7 +1938,7 @@ if (currentSuggestedQuestions.length > 0) {
                       <ChatBubble
                         type={m.role}
                         text={m.text}
-                        showAvatar={isFirstInSequence}
+                        showAvatar={isLastInSequence}
                         avatarSrc="/img/Henry.png"
                         status={m.status}
                         imageUrl={m.imageUrl}
