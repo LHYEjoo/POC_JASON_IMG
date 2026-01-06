@@ -286,16 +286,46 @@ function splitIntoBursts(text: string, maxBursts = 3): BurstPair[] {
   console.log('[splitIntoBursts] Input text:', normalizedText.slice(0, 100));
   
   // Split on sentence-ending punctuation followed by space or end of string
-  // Use a simpler regex that works more reliably
-  // We need to preserve the punctuation, so we'll reconstruct sentences with their punctuation
-  const sentenceMatches = normalizedText.match(/([^.!?]+[.!?]+)/g) || [];
+  // Use a regex that properly captures sentences WITH their punctuation
   let sentences: string[] = [];
   
-  if (sentenceMatches.length > 0) {
-    // We have sentences with punctuation
-    sentences = sentenceMatches.map(s => s.trim()).filter(s => s.length > 0);
+  // Split on sentence boundaries: . ! ? followed by space or end of string
+  // Use split with capture group to preserve the punctuation
+  const parts = normalizedText.split(/([.!?]+(?:\s+|$))/);
+  const reconstructed: string[] = [];
+  
+  for (let i = 0; i < parts.length; i += 2) {
+    const text = parts[i]?.trim() || '';
+    const punctuation = parts[i + 1]?.trim() || '';
+    
+    if (text.length > 0) {
+      // Combine text with its following punctuation (if any)
+      // If no punctuation, it's the last sentence or a sentence without ending punctuation
+      reconstructed.push(text + punctuation);
+    }
+  }
+  
+  // Also check for any remaining text that wasn't captured
+  if (reconstructed.length === 0 || reconstructed.join('').length < normalizedText.length) {
+    // Fallback: try simpler approach - split and preserve punctuation
+    const simpleSplit = normalizedText.split(/([.!?]+\s*)/);
+    if (simpleSplit.length > 1) {
+      sentences = [];
+      for (let i = 0; i < simpleSplit.length; i += 2) {
+        const text = simpleSplit[i]?.trim() || '';
+        const punct = simpleSplit[i + 1]?.trim() || '';
+        if (text.length > 0) {
+          sentences.push(text + punct);
+        }
+      }
+    } else {
+      sentences = reconstructed.length > 0 ? reconstructed : [normalizedText];
+    }
   } else {
-    // No sentence boundaries found, try other methods
+    sentences = reconstructed.filter(s => s.trim().length > 0);
+  }
+  
+  if (sentences.length === 0) {
     sentences = [normalizedText];
   }
   
@@ -362,10 +392,17 @@ function splitIntoBursts(text: string, maxBursts = 3): BurstPair[] {
   });
   
   // Combine grouped sentences: join TTS versions and display versions separately
-  const result = groups.map(g => ({
-    tts: g.map(p => p.tts).join(' '),
-    display: g.map(p => p.display).join(' ')
-  })).filter(g => g.display.length > 0);
+  // Make sure to preserve punctuation when joining - sentences already have their punctuation
+  const result = groups
+    .map(g => {
+      if (g.length === 0) return null;
+      // Join sentences with a space, preserving each sentence's punctuation
+      return {
+        tts: g.map(p => p.tts).join(' '),
+        display: g.map(p => p.display).join(' ')
+      };
+    })
+    .filter((g): g is BurstPair => g !== null && g.display.length > 0);
   
   // eslint-disable-next-line no-console
   console.log('[splitIntoBursts] Final grouped result:', result.map(r => ({ display: r.display.slice(0, 30), tts: r.tts.slice(0, 30) })));
@@ -1459,8 +1496,9 @@ if (currentSuggestedQuestions.length > 0) {
                   dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                 
                   // Add messages with 0.5s delay between each
-                  // For generated answers, image goes on last burst by default
-                  const imageIndex = bursts.length - 1;
+                  // For generated answers, image goes on last burst (after filtering)
+                  // Calculate imageIndex after we know the final burst count
+                  const imageIndex = Math.max(0, bursts.length - 1);
                   let cumulativeDelay = 800; // Initial delay
                 
                   bursts.forEach((burst, index) => {
@@ -1514,8 +1552,9 @@ if (currentSuggestedQuestions.length > 0) {
                   }
                 });
             
-                // For generated answers, image goes on last burst by default
-                const imageIndex = bursts.length - 1;
+                // For generated answers, image goes on last burst (after filtering)
+                // Calculate imageIndex after we know the final burst count
+                const imageIndex = Math.max(0, bursts.length - 1);
                 
                 // Enqueue bursts sequentially in order, but start as soon as each is ready
                 // This way burst 0 can start playing immediately while others are still generating

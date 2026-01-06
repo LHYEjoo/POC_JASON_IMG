@@ -99,7 +99,6 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {/* AI Disclaimer - First */}
           <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">AI Disclaimer</h3>
             <DisclaimerInline />
           </div>
 
