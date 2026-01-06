@@ -4,9 +4,7 @@ import DisclaimerInline from '../components/DisclaimerInline';
 import ChatBubble from '../components/ChatBubble';
 import TypingIndicator from '../components/TypingIndicator';
 import SuggestedPrompts from '../components/SuggestedPrompts';
-import MicFAB from '../components/MicFAB';
-import TextInputFallback from '../components/TextInputFallback';
-import KeyboardFAB from '../components/KeyboardFAB';
+import InputBar from '../components/InputBar';
 import Toast from '../components/Toast';
 import SettingsModal from '../components/SettingsModal';
 import { brand } from '../config/brand';
@@ -558,7 +556,7 @@ export default function DigitalShadow() {
 
   // ---------- UI bits ----------
   const [toast, setToast] = React.useState<string>('');
-  const [showKeyboard, setShowKeyboard] = React.useState<boolean>(false);
+  const [inputText, setInputText] = React.useState<string>('');
   const [showSettings, setShowSettings] = React.useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
   const audioEnabledRef = React.useRef(audioEnabled);
@@ -1785,26 +1783,23 @@ if (currentSuggestedQuestions.length > 0) {
     });
   }, [suggestedQuestionsWithIds]);
 
-  // Scroll steeds naar onder bij nieuwe berichten/typindicator
+  // Scroll container ref for messages
+  const messagesScrollRef = React.useRef<HTMLDivElement | null>(null);
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
-  React.useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM is updated
+
+  // Unified scroll-to-bottom function
+  const scrollToBottom = React.useCallback(() => {
     requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      if (bottomRef.current && messagesScrollRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
     });
-  }, [ctx.messages, ui]);
+  }, []);
 
-
-  // Auto-scroll to bottom when new messages are added
+  // Scroll to bottom when messages change, UI changes, or suggestions show/hide
   React.useEffect(() => {
-    if (ctx.messages.length > 0) {
-      setTimeout(() => {
-        if (bottomRef.current) {
-          bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    }
-  }, [ctx.messages.length]);
+    scrollToBottom();
+  }, [ctx.messages.length, ui, scrollToBottom]);
 
   // Debug hooks removed (no-op)
 
@@ -1843,15 +1838,16 @@ if (currentSuggestedQuestions.length > 0) {
         <HeaderBar name="Henry" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
       </div>
 
-      {/* Content wrapper - takes remaining space */}
+      {/* Messages area - scrollable */}
       <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-        {/* Chat Messages Container - Flexible height for all messages */}
-        <div className="flex-1 min-h-0 overflow-hidden mobile-message-container bg-[var(--color-jerboa)]">
-          <div className="h-full overflow-y-auto">
-          <main className="mx-auto max-w-4xl px-6">
+        <div 
+          ref={messagesScrollRef}
+          className="flex-1 min-h-0 overflow-y-auto mobile-message-container bg-[var(--color-jerboa)]"
+        >
+          <main className="mx-auto max-w-4xl px-3 sm:px-6">
             <DisclaimerInline language={language} />
 
-            <div className="space-y-4 py-4 min-h-0">
+            <div className="space-y-3 sm:space-y-4 py-4 min-h-0">
               {/* Debug: Show message count and STT status */}
               {import.meta.env.DEV && (
                 <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-100 rounded">
@@ -1861,7 +1857,7 @@ if (currentSuggestedQuestions.length > 0) {
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {ctx.messages.map((m: { id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }, index: number) => {
                   // Show avatar only if this is the LAST AI message in a sequence
                   // A sequence is consecutive AI messages that follow a user message
@@ -1887,7 +1883,7 @@ if (currentSuggestedQuestions.length > 0) {
 
               {/* Show if no messages */}
               {ctx.messages.length === 0 && (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 py-8 text-sm sm:text-base">
                   <div>No messages yet. Try speaking or typing.</div>
                 </div>
               )}
@@ -1895,45 +1891,27 @@ if (currentSuggestedQuestions.length > 0) {
               {/* Show typing indicator when AI is receiving stream */}
               {ui === 'ai_response_typing' && <TypingIndicator />}
 
-
               {/* anchor om smooth te scrollen naar onder */}
               <div ref={bottomRef} />
             </div>
           </main>
-          </div>
         </div>
+      </div>
 
-        {/* Keyboard fallback - positioned above suggestions */}
-        {showKeyboard && (
-          <div className="shrink-0 bg-white border-t border-black/10 shadow-vpro">
-            <div className="mx-auto max-w-4xl px-6 py-4">
-              <TextInputFallback
-                onSubmit={(t) => {
-                  setShowKeyboard(false);
-                  dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Bottom area: Suggestions Panel + Mic/Keyboard buttons */}
-        <div className="shrink-0 relative">
-          {/* Suggestions Panel - Only render when idle */}
+      {/* Bottom composer stack: Suggestions (when idle) + InputBar (always) */}
+      <div className="shrink-0 flex flex-col">
+        {/* Suggestions Panel - Only show when idle */}
+        {ui === 'idle' && (
           <div
             data-suggestions-panel
-            className={`bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 transition-opacity duration-500 ${
-              ui === 'idle' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            } ${
-              isMobile ? 'h-24 min-h-24 max-h-24 pb-2' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
+            className={`bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 overflow-hidden ${
+              isMobile ? 'h-28 sm:h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
             }`}
             style={{
               backgroundColor: '#EEEEEE',
             }}
           >
-        <div className="mx-auto max-w-4xl px-6 py-4 h-full flex flex-col">
-          <div className="flex justify-center">
-            <div className="w-full max-w-3xl">
+            <div className="mx-auto max-w-4xl px-3 sm:px-6 py-2 sm:py-3 h-full flex flex-col overflow-y-auto">
               <SuggestedPrompts
                 list={suggestedQuestions}
                 questions={suggestedQuestionsWithIds}
@@ -1972,21 +1950,17 @@ if (currentSuggestedQuestions.length > 0) {
               />
             </div>
           </div>
-          <div className="mt-4 flex justify-center mt-auto" />
-        </div>
-        </div>
+        )}
 
-        {/* Mic and Keyboard buttons row */}
-        <div className={`absolute inset-x-0 bottom-4 z-20 flex justify-center items-center gap-4 transition-opacity duration-500 ${
-          ui === 'idle' || ui === 'recording' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}>
-          {/* Robust Microphone Button - Better UX */}
-          <MicFAB
-          placement="inline"
-          state={stt.status === 'listening' ? 'recording' : 'idle'}
-          sttStatus={stt.status}
-          interimText={stt.interim}
-          onClick={async () => {
+        {/* InputBar - always visible at bottom */}
+        <InputBar
+          value={inputText}
+          onChange={setInputText}
+          onSubmit={(text) => {
+            dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text });
+            setInputText('');
+          }}
+          onMicClick={async () => {
             if (stt.status === 'idle' && ui === 'idle' && stt.isSupported) {
               // Unlock audio first (critical for mobile)
               await audioPlayer.unlock();
@@ -2015,11 +1989,11 @@ if (currentSuggestedQuestions.length > 0) {
               setTimeout(() => setToast(''), 3000);
             }
           }}
-          />
-          {/* Keyboard toggle */}
-          <KeyboardFAB onClick={() => setShowKeyboard((v: boolean) => !v)} />
-        </div>
-      </div>
+          sttStatus={stt.status}
+          interimText={stt.interim}
+          isRecording={stt.status === 'listening'}
+          placeholder={language === 'nl' ? 'Typ je vraag…' : 'Type your question…'}
+        />
       </div>
 
 

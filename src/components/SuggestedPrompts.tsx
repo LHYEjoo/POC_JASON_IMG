@@ -17,8 +17,9 @@ export default function SuggestedPrompts({
 }) {
   return (
     <div className="w-full">
-      <div className="mb-3 font-bold text-center text-xl sm:text-2xl md:text-3xl">Suggesties...</div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="mb-2 sm:mb-3 font-bold text-center text-base sm:text-xl md:text-2xl">Suggesties...</div>
+      {/* Mobile: horizontal scroll, Desktop: grid */}
+      <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 -mx-2 sm:mx-0 px-2 sm:px-0 scrollbar-hide">
         {list.map((t, index) => {
           // Try to find question by index first, then by text match as fallback
           let question = questions?.[index];
@@ -57,7 +58,7 @@ export default function SuggestedPrompts({
                 // Pass full question text, not truncated display text
                 onSelect(fullText, question?.id);
               }}
-              className="text-center rounded-[16px] px-3 py-3 sm:px-4 sm:py-4 bg-[#00ABFE] text-black shadow-vpro hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black text-sm sm:text-base"
+              className="text-center rounded-[16px] px-3 py-2 sm:px-4 sm:py-3 md:py-4 bg-[#00ABFE] text-black shadow-vpro hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black text-xs sm:text-sm md:text-base whitespace-nowrap sm:whitespace-normal shrink-0 sm:shrink"
             >
               {t}
             </button>
