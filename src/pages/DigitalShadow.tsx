@@ -1912,7 +1912,7 @@ if (currentSuggestedQuestions.length > 0) {
           overflowY: 'auto'
         }}>
           <main className="mx-auto max-w-4xl px-6">
-            <DisclaimerInline />
+            <DisclaimerInline language={language} />
 
             <div className="space-y-4 py-4 min-h-0">
               {/* Debug: Show message count and STT status */}
