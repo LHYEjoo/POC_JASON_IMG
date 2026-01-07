@@ -91,11 +91,13 @@ export function useAudioPlayer(callbacks: AudioPlayerCallbacks) {
     });
     playingRef.current = true;
 
-    // 1) Tekst ALTIJD direct in UI (with optional image)
-    cb.current.onAddMessage(head.id, head.text, head.imageUrl);
-
     const el = ensureEl();
-    el.onplay = () => cb.current.onAudioStart(head.id);
+    // Task C: Show message when audio starts playing (not immediately) to restore texting behavior
+    el.onplay = () => {
+      cb.current.onAudioStart(head.id);
+      // Add message to UI when audio actually starts playing
+      cb.current.onAddMessage(head.id, head.text, head.imageUrl);
+    };
     const done = (skipError = false) => {
       playingRef.current = false;
       queueRef.current = queueRef.current.slice(1);
@@ -103,13 +105,19 @@ export function useAudioPlayer(callbacks: AudioPlayerCallbacks) {
       if (queueRef.current.length) setTimeout(process, 30);
     };
     el.onended = () => done();
-    el.onerror = () => done(true);
+    el.onerror = () => {
+      // If audio fails, still show the message
+      cb.current.onAddMessage(head.id, head.text, head.imageUrl);
+      done(true);
+    };
 
     try {
       el.src = head.url;
       await el.play(); // kan op iOS nog steeds weigeren; tekst blijft zichtbaar
     } catch (e) {
       console.error('[AudioPlayer] Audio play failed:', e);
+      // If play fails, still show the message
+      cb.current.onAddMessage(head.id, head.text, head.imageUrl);
       done(true);
     }
   };

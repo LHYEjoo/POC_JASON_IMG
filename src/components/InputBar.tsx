@@ -47,7 +47,7 @@ export default function InputBar({
     <div className="w-full bg-[var(--color-jerboa)] border-t border-black/10">
       <div className="mx-auto max-w-4xl px-3 sm:px-6 py-2 sm:py-3">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
-          {/* Text input */}
+          {/* Text input with mic button inside on the right */}
           <div className="flex-1 relative">
             <input
               ref={inputRef}
@@ -64,52 +64,58 @@ export default function InputBar({
               placeholder={showInterim ? undefined : placeholder}
               disabled={sttStatus === 'listening'}
               className={cn(
-                'w-full rounded-[16px] border border-wolf bg-white px-3 py-2.5 sm:px-4 sm:py-3',
-                'text-sm sm:text-base',
+                'w-full rounded-[16px] border border-wolf bg-white pr-12 sm:pr-14', // Task B: Add right padding for mic button
+                'pl-3 py-2.5 sm:pl-4 sm:py-3',
+                'text-base sm:text-base', // Task A: Use text-base (16px) on mobile to prevent iOS Safari zoom
                 'shadow-vpro focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
                 sttStatus === 'listening' && 'bg-blue-50'
               )}
               style={{
                 fontFamily: 'Simplistic Sans',
+                fontSize: '16px', // Task A: Explicit 16px to prevent iOS Safari auto-zoom
               }}
             />
             {showInterim && (
-              <div className="absolute inset-0 flex items-center px-3 sm:px-4 pointer-events-none">
-                <span className="text-sm sm:text-base text-gray-500 italic truncate">
+              <div className="absolute inset-0 flex items-center pl-3 sm:pl-4 pr-12 sm:pr-14 pointer-events-none">
+                <span className="text-base text-gray-500 italic truncate">
                   {interimText}
                 </span>
               </div>
             )}
-          </div>
-
-          {/* Mic button */}
-          <button
-            type="button"
-            onClick={onMicClick}
-            aria-label={recordingActive ? 'Stop opname' : 'Start opname'}
-            aria-pressed={recordingActive}
-            className={cn(
-              'h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-vpro',
-              'flex items-center justify-center shrink-0',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
-              recordingActive
-                ? 'bg-accent animate-pulse'
-                : 'bg-primary text-white hover:bg-secondary'
-            )}
-          >
-            {recordingActive && (
-              <span className="absolute -inset-1 rounded-full border-2 border-[#FF999A] animate-ping" />
-            )}
-            <svg
-              className="h-5 w-5 sm:h-6 sm:w-6"
-              fill="currentColor"
-              viewBox="0 0 24 24"
+            
+            {/* Task B: Mic button inside input on the right */}
+            <button
+              type="button"
+              onClick={onMicClick}
+              aria-label={recordingActive ? 'Stop opname' : 'Start opname'}
+              aria-pressed={recordingActive}
+              className={cn(
+                'absolute right-2 top-1/2 -translate-y-1/2',
+                'h-8 w-8 sm:h-9 sm:w-9 rounded-full',
+                'flex items-center justify-center shrink-0',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
+                recordingActive
+                  ? 'bg-accent animate-pulse'
+                  : 'bg-transparent hover:bg-gray-100'
+              )}
             >
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-            </svg>
-          </button>
+              {recordingActive && (
+                <span className="absolute -inset-1 rounded-full border-2 border-[#FF999A] animate-ping" />
+              )}
+              <svg
+                className={cn(
+                  'h-5 w-5 sm:h-5 sm:w-5',
+                  recordingActive ? 'text-white' : 'text-gray-500'
+                )}
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+              </svg>
+            </button>
+          </div>
 
           {/* Send button - only show when there's text to send */}
           {value.trim() && sttStatus !== 'listening' && (

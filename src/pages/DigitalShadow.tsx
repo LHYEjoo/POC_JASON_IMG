@@ -1394,11 +1394,12 @@ if (currentSuggestedQuestions.length > 0) {
                 if (!hasEvidence && flags.STRICT_RAG_ONLY) {
                     // eslint-disable-next-line no-console
                     console.log('[RAG] gated: insufficient evidence', { topScore, threshold: flags.RAG_MIN_SCORE });
+                    // Use UI language for fallback messages, not detected question language
                     const fallbackText = isSensitive
-                      ? (questionLang === 'nl' 
+                      ? (language === 'nl' 
                           ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                           : 'I can\'t go into that, I\'m afraid they\'ll find me.')
-                      : (questionLang === 'nl'
+                      : (language === 'nl'
                           ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
                           : 'Hmm, sorry I\'m not the right person to answer that.');
                     const fallbackDisplay = removeTrailingPeriods(fallbackText);
@@ -1445,11 +1446,12 @@ if (currentSuggestedQuestions.length > 0) {
                 }
                 // eslint-disable-next-line no-console
                 console.log('[RAG] answering with sources; temperature=0');
+                // Use UI language for fallback messages, not detected question language
                 let fullText = answer.text || (isSensitive
-                  ? (questionLang === 'nl'
+                  ? (language === 'nl'
                       ? 'Daar kan ik niet op ingaan, ik ben bang dat ze me vinden.'
                       : 'I can\'t go into that, I\'m afraid they\'ll find me.')
-                  : (questionLang === 'nl'
+                  : (language === 'nl'
                       ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
                       : 'Hmm, sorry I\'m not the right person to answer that.'));
             
@@ -1946,17 +1948,15 @@ if (currentSuggestedQuestions.length > 0) {
         {ui === 'idle' && showSuggestions && (
           <div
             data-suggestions-panel
-            className={`bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 overflow-hidden ${
+            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden ${
               isMobile ? 'h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
             }`}
-            style={{
-              backgroundColor: '#EEEEEE',
-            }}
           >
             <div className="mx-auto max-w-4xl px-3 sm:px-6 py-2 sm:py-3 h-full flex flex-col overflow-y-auto">
               <SuggestedPrompts
                 list={suggestedQuestions}
                 questions={suggestedQuestionsWithIds}
+                language={language}
                 onSelect={(t, questionId) => {
                   // eslint-disable-next-line no-console
                   console.log('[DigitalShadow][onSelect] Received:', { text: t, questionId, hasRef: !!currentQuestionIdRef.current });
