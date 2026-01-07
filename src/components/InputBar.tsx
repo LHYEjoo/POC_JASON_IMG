@@ -66,7 +66,7 @@ export default function InputBar({
               className={cn(
                 'w-full rounded-[16px] border border-wolf bg-white pr-12 sm:pr-14', // Task B: Add right padding for mic button
                 'pl-3 py-2.5 sm:pl-4 sm:py-3',
-                'text-base sm:text-base', // Task A: Use text-base (16px) on mobile to prevent iOS Safari zoom
+                'text-base sm:text-base composer-input', // Task A: Use text-base (16px) on mobile to prevent iOS Safari zoom
                 'shadow-vpro focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
                 sttStatus === 'listening' && 'bg-blue-50'
@@ -74,6 +74,7 @@ export default function InputBar({
               style={{
                 fontFamily: 'Simplistic Sans',
                 fontSize: '16px', // Task A: Explicit 16px to prevent iOS Safari auto-zoom
+                WebkitTextSizeAdjust: '100%', // Prevent iOS Safari text size adjustment
               }}
             />
             {showInterim && (
@@ -106,7 +107,7 @@ export default function InputBar({
               <svg
                 className={cn(
                   'h-5 w-5 sm:h-5 sm:w-5',
-                  recordingActive ? 'text-white' : 'text-gray-500'
+                  recordingActive ? 'text-white' : 'text-primary'
                 )}
                 fill="currentColor"
                 viewBox="0 0 24 24"

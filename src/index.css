@@ -96,6 +96,17 @@ body {
     /* Fix iOS Safari bottom bar issues */
     padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  /* Prevent iOS Safari auto-zoom on input focus */
+  .composer-input {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  input.composer-input,
+  textarea.composer-input {
+    font-size: 16px !important;
+  }
 }
 
 /* Visually hidden but accessible */
