@@ -17,8 +17,8 @@ export default function DisclaimerInline({ language = 'nl' }: Props) {
         className="w-2/3 text-sm font-medium text-center px-4 py-3 rounded"
         style={{ 
           fontFamily: 'Simplistic Sans',
-          backgroundColor: '#FF0000',
-          color: '#FFFFFF'
+          backgroundColor: '#FF9999',
+          color: '#000000'
         }}
       >
         {text}

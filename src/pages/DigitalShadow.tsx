@@ -558,6 +558,7 @@ export default function DigitalShadow() {
   const [toast, setToast] = React.useState<string>('');
   const [inputText, setInputText] = React.useState<string>('');
   const [showSettings, setShowSettings] = React.useState<boolean>(false);
+  const [showSuggestions, setShowSuggestions] = React.useState<boolean>(true);
   const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
   const audioEnabledRef = React.useRef(audioEnabled);
   audioEnabledRef.current = audioEnabled;
@@ -1898,14 +1899,55 @@ if (currentSuggestedQuestions.length > 0) {
         </div>
       </div>
 
-      {/* Bottom composer stack: Suggestions (when idle) + InputBar (always) */}
+      {/* Bottom composer stack: Desktop (InputBar above Suggestions), Mobile (Suggestions above InputBar) */}
       <div className="shrink-0 flex flex-col">
-        {/* Suggestions Panel - Only show when idle */}
-        {ui === 'idle' && (
+        {/* Desktop: InputBar above Suggestions */}
+        <div className="hidden sm:block">
+          <InputBar
+            value={inputText}
+            onChange={setInputText}
+            onSubmit={(text) => {
+              dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text });
+              setInputText('');
+            }}
+            onMicClick={async () => {
+              if (stt.status === 'idle' && ui === 'idle' && stt.isSupported) {
+                await audioPlayer.unlock();
+                dispatchRef.current?.({ type: 'MIC_TAP' });
+              } else if (stt.status === 'listening' || stt.status === 'processing') {
+                stt.stop();
+              } else if (stt.status === 'error') {
+                stt.stop();
+                setTimeout(() => {
+                  if (stt.isSupported) {
+                    dispatchRef.current?.({ type: 'MIC_TAP' });
+                  } else {
+                    setToast(languageRef.current === 'nl' 
+                      ? 'Spraakherkenning wordt niet ondersteund. Gebruik het toetsenbord.'
+                      : 'Speech recognition not supported. Please use the keyboard.');
+                    setTimeout(() => setToast(''), 3000);
+                  }
+                }, 500);
+              } else if (!stt.isSupported) {
+                setToast(languageRef.current === 'nl' 
+                  ? 'Spraakherkenning wordt niet ondersteund. Gebruik het toetsenbord.'
+                  : 'Speech recognition not supported. Please use the keyboard.');
+                setTimeout(() => setToast(''), 3000);
+              }
+            }}
+            sttStatus={stt.status}
+            interimText={stt.interim}
+            isRecording={stt.status === 'listening'}
+            placeholder={language === 'nl' ? 'Typ je vraag…' : 'Type your question…'}
+          />
+        </div>
+
+        {/* Suggestions Panel - Only show when idle and showSuggestions is true */}
+        {ui === 'idle' && showSuggestions && (
           <div
             data-suggestions-panel
             className={`bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 overflow-hidden ${
-              isMobile ? 'h-28 sm:h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
+              isMobile ? 'h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
             }`}
             style={{
               backgroundColor: '#EEEEEE',
@@ -1947,53 +1989,52 @@ if (currentSuggestedQuestions.length > 0) {
                   // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)
                   nextSuggestedQuestions(t);
                 }}
+                onClose={isMobile ? () => setShowSuggestions(false) : undefined}
               />
             </div>
           </div>
         )}
 
-        {/* InputBar - always visible at bottom */}
-        <InputBar
-          value={inputText}
-          onChange={setInputText}
-          onSubmit={(text) => {
-            dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text });
-            setInputText('');
-          }}
-          onMicClick={async () => {
-            if (stt.status === 'idle' && ui === 'idle' && stt.isSupported) {
-              // Unlock audio first (critical for mobile)
-              await audioPlayer.unlock();
-              // Start speech recognition
-              dispatchRef.current?.({ type: 'MIC_TAP' });
-            } else if (stt.status === 'listening' || stt.status === 'processing') {
-              // Stop speech recognition if listening/processing
-              stt.stop();
-            } else if (stt.status === 'error') {
-              // If status is error, try to reset and start
-              stt.stop(); // Ensure clean state
-              setTimeout(() => {
-                if (stt.isSupported) {
-                  dispatchRef.current?.({ type: 'MIC_TAP' });
-                } else {
-                  setToast(languageRef.current === 'nl' 
-                    ? 'Spraakherkenning wordt niet ondersteund. Gebruik het toetsenbord.'
-                    : 'Speech recognition not supported. Please use the keyboard.');
-                  setTimeout(() => setToast(''), 3000);
-                }
-              }, 500);
-            } else if (!stt.isSupported) {
-              setToast(languageRef.current === 'nl' 
-                ? 'Spraakherkenning wordt niet ondersteund. Gebruik het toetsenbord.'
-                : 'Speech recognition not supported. Please use the keyboard.');
-              setTimeout(() => setToast(''), 3000);
-            }
-          }}
-          sttStatus={stt.status}
-          interimText={stt.interim}
-          isRecording={stt.status === 'listening'}
-          placeholder={language === 'nl' ? 'Typ je vraag…' : 'Type your question…'}
-        />
+        {/* Mobile: InputBar at bottom (below suggestions) */}
+        <div className="sm:hidden">
+          <InputBar
+            value={inputText}
+            onChange={setInputText}
+            onSubmit={(text) => {
+              dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text });
+              setInputText('');
+            }}
+            onMicClick={async () => {
+              if (stt.status === 'idle' && ui === 'idle' && stt.isSupported) {
+                await audioPlayer.unlock();
+                dispatchRef.current?.({ type: 'MIC_TAP' });
+              } else if (stt.status === 'listening' || stt.status === 'processing') {
+                stt.stop();
+              } else if (stt.status === 'error') {
+                stt.stop();
+                setTimeout(() => {
+                  if (stt.isSupported) {
+                    dispatchRef.current?.({ type: 'MIC_TAP' });
+                  } else {
+                    setToast(languageRef.current === 'nl' 
+                      ? 'Spraakherkenning wordt niet ondersteund. Gebruik het toetsenbord.'
+                      : 'Speech recognition not supported. Please use the keyboard.');
+                    setTimeout(() => setToast(''), 3000);
+                  }
+                }, 500);
+              } else if (!stt.isSupported) {
+                setToast(languageRef.current === 'nl' 
+                  ? 'Spraakherkenning wordt niet ondersteund. Gebruik het toetsenbord.'
+                  : 'Speech recognition not supported. Please use the keyboard.');
+                setTimeout(() => setToast(''), 3000);
+              }
+            }}
+            sttStatus={stt.status}
+            interimText={stt.interim}
+            isRecording={stt.status === 'listening'}
+            placeholder={language === 'nl' ? 'Typ je vraag…' : 'Type your question…'}
+          />
+        </div>
       </div>
 
 
