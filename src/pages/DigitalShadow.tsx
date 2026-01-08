@@ -1789,6 +1789,20 @@ if (currentSuggestedQuestions.length > 0) {
   // Scroll container ref for messages
   const messagesScrollRef = React.useRef<HTMLDivElement | null>(null);
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
+  
+  // Track if we've done the initial scroll to top
+  const didInitialScrollRef = React.useRef(false);
+  // Track previous message count to detect RESET
+  const prevMessageCountRef = React.useRef(ctx.messages.length);
+
+  // Scroll to top function (for initial load and RESET)
+  const scrollToTop = React.useCallback(() => {
+    requestAnimationFrame(() => {
+      if (messagesScrollRef.current) {
+        messagesScrollRef.current.scrollTop = 0;
+      }
+    });
+  }, []);
 
   // Unified scroll-to-bottom function
   const scrollToBottom = React.useCallback(() => {
@@ -1799,9 +1813,33 @@ if (currentSuggestedQuestions.length > 0) {
     });
   }, []);
 
-  // Scroll to bottom when messages change, UI changes, or suggestions show/hide
+  // Scroll to top on initial mount and after RESET
   React.useEffect(() => {
-    scrollToBottom();
+    const isInitialMessages = ctx.messages.length === 2 && ctx.messages.every(m => m.id.startsWith('initial-'));
+    const wasReset = prevMessageCountRef.current > 2 && ctx.messages.length === 2 && isInitialMessages;
+    
+    if (!didInitialScrollRef.current || wasReset) {
+      // Small delay to ensure DOM is laid out (especially for mobile Safari)
+      setTimeout(() => {
+        scrollToTop();
+        didInitialScrollRef.current = true;
+      }, 0);
+    }
+    
+    prevMessageCountRef.current = ctx.messages.length;
+  }, [ctx.messages.length, scrollToTop]);
+
+  // Scroll to bottom when messages change, UI changes, or suggestions show/hide
+  // But skip on initial mount or when only initial messages are present
+  React.useEffect(() => {
+    const isInitialMessages = ctx.messages.length === 2 && ctx.messages.every(m => m.id.startsWith('initial-'));
+    
+    // Only scroll to bottom if:
+    // 1. We've done the initial scroll to top
+    // 2. There are more than just the initial messages (or we're in a non-idle state)
+    if (didInitialScrollRef.current && (!isInitialMessages || ui !== 'idle')) {
+      scrollToBottom();
+    }
   }, [ctx.messages.length, ui, scrollToBottom]);
 
   // Debug hooks removed (no-op)
