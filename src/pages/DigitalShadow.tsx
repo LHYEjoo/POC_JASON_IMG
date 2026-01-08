@@ -1836,7 +1836,7 @@ if (currentSuggestedQuestions.length > 0) {
         color: '#000000',
       }}
     >
-      {/* Header - fixed at top */}
+      {/* Header - sticky at top */}
       <div className="shrink-0">
         <HeaderBar name="Henry" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
       </div>

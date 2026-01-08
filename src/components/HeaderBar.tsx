@@ -10,7 +10,7 @@ interface Props {
 
 export function HeaderBar({ name, location, flag, onSettingsClick }: Props) {
   return (
-    <header className={cn('fixed inset-x-0 top-0 z-30 bg-[#00ABFE] text-white shadow-vpro')}> 
+    <header className={cn('sticky top-0 z-30 w-full bg-[#00ABFE] text-white shadow-vpro')} style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}> 
       <div className="mx-auto max-w-5xl px-6 h-24 flex items-center justify-between">
         <div className="flex items-center gap-5">
           <img src="/img/Henry.png" alt="Henry" className="h-14 w-14 rounded-full ring-2 ring-white/30" />
