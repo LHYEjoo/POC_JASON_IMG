@@ -1,20 +1,20 @@
-## Digital Shadow – VPRO Medialab (Society 5.0)
+## 👤 Digital Shadow Prototype  – VPRO Medialab - Elk Verhaal Verdient Een Stem (EVVES)
 
-Single‑screen interactive prototype where visitors can talk with *Henry*, a fictional Hong Kong refugee, and explore his memories through voice and text.
+Single‑screen interactive prototype where visitors can talk with *Henry*, an AI representation of Henry Tong, a Hong Kong refugee who fled to Taiwan after the protests in 2019, and explore his memories through voice and text.
 
 The prototype runs fully in the browser (React + TypeScript + Tailwind) and connects to serverless APIs for:
 - **Speech‑to‑text (STT)** – live speech recognition in Dutch/English
 - **Retrieval‑augmented generation (RAG)** – searching Henry’s background documents
 - **Text‑to‑speech (TTS)** – generating Henry’s spoken replies in short audio “bursts”
 
-The result is a conversational experience on a single large screen: visitors press and hold the mic, ask a question, and hear/see Henry respond while the system quietly handles RAG, prompting and audio playback in the background.
+The result is a conversational experience on a single screen: visitors press the mic, ask a question, and hear/see Henry respond while the system quietly handles RAG, prompting and audio playback in the background.
 
 ---
 
 ## What the prototype does
 
 - **Voice‑first conversation**
-  - Visitors ask questions by tapping the microphone button.
+  - Visitors can ask unique questions by pressing the microphone button or by typing them
   - The Web Speech API provides **interim transcripts** while the user is speaking and a **final transcript** when they stop.
   - For non‑supported browsers there is a graceful keyboard/text input path.
 
