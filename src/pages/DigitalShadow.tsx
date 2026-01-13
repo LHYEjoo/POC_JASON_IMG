@@ -18,7 +18,7 @@ import { useConversationStorage } from '../hooks/useConversationStorage';
 import { getPreprompt, type Language } from '../config/prompt';
 import { getImageForPrompt } from '../config/promptImages';
 import { useDynamicQuestions } from '../hooks/useDynamicQuestions';
-import { getPreprompts, type Language as QuestionLanguage } from '../config/suggestedQuestions';
+import { getPreprompts } from '../config/suggestedQuestions';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 const PROJECT_ID = (import.meta as any).env?.VITE_PROJECT_ID || null;
@@ -1863,6 +1863,22 @@ if (currentSuggestedQuestions.length > 0) {
   const cancelIdleTimerRef = React.useRef(cancelIdleTimer);
   cancelIdleTimerRef.current = cancelIdleTimer;
 
+  // Precompute which messages should show avatars (last AI message in each sequence)
+  // This avoids computing inside the map and reduces re-renders
+  const showAvatarMap = React.useMemo(() => {
+    const map = new Map<string, boolean>();
+    for (let i = 0; i < ctx.messages.length; i++) {
+      const m = ctx.messages[i];
+      if (m.role === 'ai') {
+        const isLastInSequence = 
+          i === ctx.messages.length - 1 || // Last message overall
+          ctx.messages[i + 1]?.role === 'user'; // Next message is from user (end of AI sequence)
+        map.set(m.id, isLastInSequence);
+      }
+    }
+    return map;
+  }, [ctx.messages]);
+
   // ---------- Render ----------
   return (
     <div
@@ -1898,29 +1914,17 @@ if (currentSuggestedQuestions.length > 0) {
                 </div>
               )}
 
-              <div className="space-y-3 sm:space-y-4">
-                {ctx.messages.map((m: { id: string; role: 'ai' | 'user'; text: string; status: 'final' | 'stream'; imageUrl?: string }, index: number) => {
-                  // Show avatar only if this is the LAST AI message in a sequence
-                  // A sequence is consecutive AI messages that follow a user message
-                  const isLastInSequence = m.role === 'ai' && (
-                    index === ctx.messages.length - 1 || // Last message overall
-                    ctx.messages[index + 1]?.role === 'user' // Next message is from user (end of AI sequence)
-                  );
-                  
-                  return (
-                    <div key={m.id} className="message-item" data-index={index}>
-                      <ChatBubble
-                        type={m.role}
-                        text={m.text}
-                        showAvatar={isLastInSequence}
-                        avatarSrc="/img/Henry.png"
-                        status={m.status}
-                        imageUrl={m.imageUrl}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+              {ctx.messages.map((m) => (
+                <ChatBubble
+                  key={m.id}
+                  type={m.role}
+                  text={m.text}
+                  showAvatar={showAvatarMap.get(m.id) ?? false}
+                  avatarSrc="/img/Henry.png"
+                  status={m.status}
+                  imageUrl={m.imageUrl}
+                />
+              ))}
 
               {/* Show if no messages */}
               {ctx.messages.length === 0 && (
