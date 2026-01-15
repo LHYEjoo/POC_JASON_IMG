@@ -1,7 +1,9 @@
 ## 👤 Digital Shadow Prototype  – VPRO Medialab
+link to prototype: https://poc-jason-img.vercel.app/
 ## Elk Verhaal Verdient Een Stem (EVVES)
 
 Single‑screen interactive prototype where visitors can talk with *Henry*, an AI representation of Henry Tong, a Hong Kong refugee who fled to Taiwan after the protests in 2019, and explore his memories through voice and text.
+
 <img width="316" height="546" alt="image" src="https://github.com/user-attachments/assets/73d2b829-ab70-4236-8efd-92f8395c9d5d" />
 
 The prototype runs fully in the browser (React + TypeScript + Tailwind) and connects to serverless APIs for:
