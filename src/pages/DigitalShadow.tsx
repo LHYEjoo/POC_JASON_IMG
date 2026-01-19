@@ -8,6 +8,7 @@ import InputBar from '../components/InputBar';
 import Toast from '../components/Toast';
 import SettingsModal from '../components/SettingsModal';
 import InfoModal from '../components/InfoModal';
+import IntroModal from '../components/IntroModal';
 import { brand } from '../config/brand';
 import { reducer, type UIState, type UIContext, type Action } from '../state/machine';
 import { useRobustSpeechRecognition } from '../hooks/useRobustSpeechRecognition';
@@ -572,6 +573,11 @@ export default function DigitalShadow() {
   const [inputText, setInputText] = React.useState<string>('');
   const [showSettings, setShowSettings] = React.useState<boolean>(false);
   const [showInfo, setShowInfo] = React.useState<boolean>(false);
+  const [showIntro, setShowIntro] = React.useState<boolean>(() => {
+    // Show intro on first visit (check localStorage)
+    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    return !hasSeenIntro;
+  });
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
   const audioEnabledRef = React.useRef(audioEnabled);
@@ -2259,6 +2265,16 @@ if (currentSuggestedQuestions.length > 0) {
         onClose={() => setShowInfo(false)}
         language={language}
         sources={allSources}
+      />
+
+      {/* Intro Modal */}
+      <IntroModal
+        isOpen={showIntro}
+        onClose={() => {
+          setShowIntro(false);
+          localStorage.setItem('hasSeenIntro', 'true');
+        }}
+        language={language}
       />
 
     </div>

@@ -23,3 +23,6 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 .env
+
+# Large video files (hosted separately, not in git)
+img/ruben.mp4
