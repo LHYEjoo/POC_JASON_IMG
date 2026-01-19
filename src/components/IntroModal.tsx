@@ -89,11 +89,11 @@ export function IntroModal({ isOpen, onClose, language }: Props) {
             <p className="text-base text-gray-700 leading-relaxed mb-4">
               {language === 'nl' ? (
                 <>
-                  Dit is een <strong>prototype</strong> van een interactieve chat-ervaring waarbij je in gesprek kunt gaan met Henry, een AI-personage gebaseerd op een waargebeurd verhaal, en een echt persoon. Het prototype maakt gebruik van spraakherkenning, kunstmatige intelligentie en tekst-naar-spraak technologie om een natuurlijk gesprek te simuleren. (probeert ie dan he)
+                 Dit project bij VPRO Medialab onderzoekt hoe AI kan helpen om verhalen van mensen die niet veilig herkenbaar kunnen spreken toch geloofwaardig en invoelbaar te vertellen. De meerwaarde zit in een digital shadow: een AI-gestuurde stem en representatie die anonimiteit combineert met emotionele impact en transparantie. In plaats van een statisch verhaal kunnen gebruikers in gesprek gaan en context verdiepen. Op dit moment is er een werkend proof-of-concept in de vorm van een mobiele applicatie, onderbouwd met onderzoek naar AI-stemmen, gebruikerservaring en ethische kaders, waarmee VPRO Medialab de journalistieke haalbaarheid kan toetsen.
                 </>
               ) : (
                 <>
-                  This is a <strong>prototype</strong> of an interactive chat experience where you can have a conversation with Henry, an AI character based on a true story. The prototype uses speech recognition, artificial intelligence, and text-to-speech technology to simulate a natural conversation.
+                  This project at VPRO Medialab explores how AI can be used to tell the stories of people who cannot safely speak in public in a credible and emotionally engaging way. Its value lies in the concept of a digital shadow: an AI-driven voice and representation that combines anonymity with empathy and transparency. Instead of a static story, users can engage in an interactive conversation and explore deeper context. At present, the project exists as a working proof of concept in the form of a mobile application, supported by research into AI voices, user experience, and ethical frameworks, allowing VPRO Medialab to assess its journalistic viability.
                 </>
               )}
             </p>
@@ -124,6 +124,21 @@ export function IntroModal({ isOpen, onClose, language }: Props) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
+            </div>
+            {/* Continue button */}
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={onClose}
+                className={cn(
+                  'px-8 py-3 rounded-full font-medium text-white',
+                  'bg-primary hover:bg-primary/90 transition-colors',
+                  'shadow-lg hover:shadow-xl',
+                  'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+                )}
+              >
+                {language === 'nl' ? 'Doorgaan' : 'Continue'}
+              </button>
             </div>
           </section>
         </div>
