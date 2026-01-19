@@ -25,7 +25,7 @@ function requireEnv(name: string): string {
 }
 
 const OPENAI_API_KEY = requireEnv('OPENAI_API_KEY');
-const DEFAULT_MODEL = process.env.CHAT_MODEL || 'gpt-4o-mini';
+const DEFAULT_MODEL = process.env.CHAT_MODEL || 'gpt-5.1';
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 

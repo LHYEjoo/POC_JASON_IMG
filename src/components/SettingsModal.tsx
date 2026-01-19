@@ -19,9 +19,11 @@ interface Props {
   sources: Source[];
   darkMode?: boolean;
   onDarkModeToggle?: (enabled: boolean) => void;
+  temperature?: number;
+  onTemperatureChange?: (temp: number) => void;
 }
 
-export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset, sources, darkMode = false, onDarkModeToggle }: Props) {
+export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset, sources, darkMode = false, onDarkModeToggle, temperature = 0, onTemperatureChange }: Props) {
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   // Close on escape key
@@ -208,20 +210,56 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
             </div>
           )}
 
+          {/* Temperature Slider */}
+          {onTemperatureChange && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="temperature-slider" className="text-lg font-medium text-gray-900 dark:text-white">
+                  {language === 'nl' ? 'Temperatuur' : 'Temperature'}
+                </label>
+                <span className="text-sm font-mono text-gray-600 dark:text-gray-400">
+                  {temperature.toFixed(1)}
+                </span>
+              </div>
+              <input
+                type="range"
+                id="temperature-slider"
+                min="0"
+                max="1"
+                step="0.1"
+                value={temperature}
+                onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#00ABFE]"
+                style={{
+                  background: `linear-gradient(to right, #00ABFE 0%, #00ABFE ${temperature * 100}%, #e5e7eb ${temperature * 100}%, #e5e7eb 100%)`
+                }}
+                aria-label={language === 'nl' ? 'Temperatuur slider' : 'Temperature slider'}
+              />
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <span>{language === 'nl' ? 'Deterministisch' : 'Deterministic'}</span>
+                <span>{language === 'nl' ? 'Creatief' : 'Creative'}</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {language === 'nl'
+                  ? 'Lager = meer consistent en voorspelbaar, Hoger = meer creatief en gevarieerd'
+                  : 'Lower = more consistent and predictable, Higher = more creative and varied'}
+              </p>
+            </div>
+          )}
+
           {/* Sources & contact moved to InfoModal */}
         </div>
 
-        {/* Footer with Reset Button */}
-        <div className="border-t border-gray-200 px-6 py-4">
+        {/* Footer with Save Settings Button */}
+        <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
           <button
             type="button"
             onClick={() => {
-              onReset();
               onClose();
             }}
-            className="w-full rounded-[16px] px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium shadow-vpro transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="w-full rounded-[16px] px-4 py-3 bg-[#00ABFE] hover:bg-[#0099E6] text-white font-medium shadow-vpro transition-colors focus:outline-none focus:ring-2 focus:ring-[#00ABFE] focus:ring-offset-2"
           >
-            ↻ {language === 'nl' ? 'Reset Gesprek' : 'Reset Conversation'}
+            {language === 'nl' ? 'Instellingen Opslaan' : 'Save Settings'}
           </button>
         </div>
       </div>

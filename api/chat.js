@@ -54,9 +54,9 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5.1',
         stream: true,
-        temperature: 0,
+        temperature: typeof req.body.temperature === 'number' ? Math.max(0, Math.min(1, req.body.temperature)) : 0,
         messages: [
           { 
             role: 'system', 

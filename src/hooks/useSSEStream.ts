@@ -56,7 +56,8 @@ function extractChunks(buffer: string, max = 200): { chunks: string[]; rest: str
 export async function streamChat(
   userText: string,
   onChunkReady: (text: string) => void,
-  onBufferFlush: () => void
+  onBufferFlush: () => void,
+  temperature: number = 0
 ): Promise<{ text: string; audioUrl?: string }> {
   
   // Get threadId from localStorage
@@ -65,7 +66,8 @@ export async function streamChat(
   const requestBody = { 
     mode: 'stream', 
     message: userText,
-    threadId: threadId 
+    threadId: threadId,
+    temperature: Math.max(0, Math.min(1, temperature))
   };
   
   const res = await fetch('/api/chat', {

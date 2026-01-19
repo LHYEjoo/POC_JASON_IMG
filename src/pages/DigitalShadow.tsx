@@ -519,6 +519,16 @@ export default function DigitalShadow() {
     }
   }, [darkMode]);
 
+  // ---------- Temperature state (with localStorage persistence) ----------
+  const [temperature, setTemperature] = React.useState<number>(() => {
+    const stored = localStorage.getItem('Henry-temperature');
+    return stored ? Math.max(0, Math.min(1, parseFloat(stored))) : 0;
+  });
+  
+  React.useEffect(() => {
+    localStorage.setItem('Henry-temperature', temperature.toString());
+  }, [temperature]);
+
   // ---------- UI state machine ----------
   const [ui, setUI] = React.useState<UIState>('idle');
   const [ctx, setCtx] = React.useState<UIContext>(() => ({
@@ -1481,12 +1491,12 @@ if (currentSuggestedQuestions.length > 0) {
                   }
 
                 const messages = buildHenryRAGPrompt(questionText, search.chunks || [], questionLang);
-                const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-4o-mini', temperature: 0 });
+                const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-5.1', temperature: temperature });
                 if (!answer?.ok) {
                   throw new Error(answer?.error || 'answer failed');
                 }
                 // eslint-disable-next-line no-console
-                console.log('[RAG] answering with sources; temperature=0');
+                console.log('[RAG] answering with sources; temperature=', temperature);
                 // Use UI language for fallback messages, not detected question language
                 let fullText = answer.text || (isSensitive
                   ? (language === 'nl'
@@ -2150,7 +2160,7 @@ if (currentSuggestedQuestions.length > 0) {
         {ui === 'idle' && showSuggestions && !showIntro && (
           <div
             data-suggestions-panel
-            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden animate-fadeSlow ${
+            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)] backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden animate-fadeSlow ${
               isMobile ? 'h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
             }`}
           >
@@ -2281,6 +2291,10 @@ if (currentSuggestedQuestions.length > 0) {
         darkMode={darkMode}
         onDarkModeToggle={(enabled) => {
           setDarkMode(enabled);
+        }}
+        temperature={temperature}
+        onTemperatureChange={(temp) => {
+          setTemperature(Math.max(0, Math.min(1, temp)));
         }}
       />
 
