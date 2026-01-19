@@ -10,7 +10,6 @@ interface Props {
 
 export function IntroModal({ isOpen, onClose, language }: Props) {
   const modalRef = React.useRef<HTMLDivElement>(null);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
 
   // Close on escape key
   React.useEffect(() => {
@@ -33,12 +32,6 @@ export function IntroModal({ isOpen, onClose, language }: Props) {
     }
   };
 
-  // Pause video when modal closes
-  React.useEffect(() => {
-    if (!isOpen && videoRef.current) {
-      videoRef.current.pause();
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -122,20 +115,15 @@ export function IntroModal({ isOpen, onClose, language }: Props) {
             <h3 className="text-lg font-medium text-gray-900 mb-3">
               {language === 'nl' ? 'Video' : 'Video'}
             </h3>
-            <div className="relative w-full rounded-[16px] overflow-hidden bg-black">
-              <video
-                ref={videoRef}
-                src="/img/ruben.mp4"
-                controls
-                className="w-full h-auto"
-                style={{
-                  maxHeight: '60vh',
-                }}
-              >
-                {language === 'nl' 
-                  ? 'Je browser ondersteunt de video tag niet.'
-                  : 'Your browser does not support the video tag.'}
-              </video>
+            <div className="relative w-full rounded-[16px] overflow-hidden bg-black" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/-hJv8A1WG5Q"
+                title={language === 'nl' ? 'Ruben langs de Zuid-Chinese Zee' : 'Ruben langs de Zuid-Chinese Zee'}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
             </div>
           </section>
         </div>
