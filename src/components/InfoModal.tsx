@@ -169,7 +169,7 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               {language === 'nl' ? 'Prototype' : 'Prototype'}
             </h3>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 mb-3">
               <a
                 href="https://www.vpro.nl/ruben-langs-de-zuid-chinese-zee"
                 target="_blank"
@@ -178,6 +178,82 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
               >
                 prototype for Ruben langs de zuid chinese zee series
               </a>
+            </p>
+            <p className="text-sm text-gray-700 space-y-2">
+              {language === 'nl' ? (
+                <>
+                  <span className="block mb-2">
+                    Dit prototype is gemaakt als test om te onderzoeken of we AI
+                    kunnen inzetten in situaties waarin een informant gevaar zou
+                    lopen als hij of zij publiek naar voren treedt. Het doel is
+                    om de integriteit van het verhaal te behouden, maar tegelijk
+                    de identiteit en alle informatie te beschermen die terug te
+                    voeren is naar de oorspronkelijke persoon.
+                  </span>
+                  <span className="block mb-2">
+                    In dit specifieke geval hebben we Henry’s echte identiteit
+                    onthuld vanwege de televisieserie, waarin zijn gezicht en
+                    stem ongewijzigd in beeld komen. Om verwarring te voorkomen
+                    hebben we ervoor gekozen zijn identiteit hier te behouden,
+                    maar het testen en prototypen is gedaan met een pseudoniem,
+                    een AI‑gegenereerd portret en een nieuwe stem.
+                  </span>
+                  <span className="block">
+                    Voor vragen kun je tot en met 3 februari mailen naar{' '}
+                    <a
+                      href="mailto:L.Ye@vpro.nl"
+                      className="text-[#00ABFE] hover:underline font-medium"
+                    >
+                      L.Ye@vpro.nl
+                    </a>
+                    . Daarna kun je terecht bij{' '}
+                    <a
+                      href="mailto:medialab@vpro.nl"
+                      className="text-[#00ABFE] hover:underline font-medium"
+                    >
+                      medialab@vpro.nl
+                    </a>
+                    .
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="block mb-2">
+                    This prototype was created as an experiment to explore
+                    whether we can use AI in cases where an informant would be
+                    put at risk if they spoke out publicly. The aim is to keep
+                    the integrity of the story intact while protecting the
+                    identity and any information that could lead back to the
+                    original person.
+                  </span>
+                  <span className="block mb-2">
+                    In this specific case we revealed Henry’s real identity
+                    because of the TV series, in which his face and voice are
+                    shown on screen without any modifications. To avoid
+                    confusion we chose to keep his identity here, but the
+                    testing and prototyping were done with a pseudonym, an
+                    AI‑generated image of him and a new voice.
+                  </span>
+                  <span className="block">
+                    If you have any questions, you can email{' '}
+                    <a
+                      href="mailto:L.Ye@vpro.nl"
+                      className="text-[#00ABFE] hover:underline font-medium"
+                    >
+                      L.Ye@vpro.nl
+                    </a>{' '}
+                    until the 3rd of February. After that, please send your
+                    questions to{' '}
+                    <a
+                      href="mailto:medialab@vpro.nl"
+                      className="text-[#00ABFE] hover:underline font-medium"
+                    >
+                      medialab@vpro.nl
+                    </a>
+                    .
+                  </span>
+                </>
+              )}
             </p>
           </section>
 

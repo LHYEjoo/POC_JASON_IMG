@@ -1911,6 +1911,17 @@ if (currentSuggestedQuestions.length > 0) {
     };
   }, [resetSuggestionsTimer]);
 
+  // Also reset suggestions timer after Henry's last message, so panel waits
+  // 10s from the end of his answer instead of from the user's question
+  React.useEffect(() => {
+    if (ui === 'idle' && ctx.messages.length > 0) {
+      const last = ctx.messages[ctx.messages.length - 1];
+      if (last.role === 'ai') {
+        resetSuggestionsTimer();
+      }
+    }
+  }, [ui, ctx.messages.length, resetSuggestionsTimer]);
+
   // Delay for typing indicator ("thinking cloud"): show a bit after AI typing starts
   const [showTypingIndicator, setShowTypingIndicator] = React.useState(false);
   React.useEffect(() => {
@@ -2108,7 +2119,7 @@ if (currentSuggestedQuestions.length > 0) {
         {ui === 'idle' && showSuggestions && (
           <div
             data-suggestions-panel
-            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden animate-fade ${
+            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden animate-fadeSlow ${
               isMobile ? 'h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
             }`}
           >
