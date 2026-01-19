@@ -565,6 +565,9 @@ export default function DigitalShadow() {
   const uiRef = React.useRef(ui);
   uiRef.current = ui;
 
+  const temperatureRef = React.useRef(temperature);
+  temperatureRef.current = temperature;
+
   // Track the active speech-recognition message id (for interim/final linkage)
   const currentSpeechIdRef = React.useRef<string | null>(null);
   // Track pending image URL to add final message after image
@@ -1508,18 +1511,21 @@ if (currentSuggestedQuestions.length > 0) {
 
                 const messages = buildHenryRAGPrompt(questionText, search.chunks || [], questionLang);
                 
+                // Get current temperature from ref to avoid stale closure
+                const currentTemperature = temperatureRef.current;
+                
                 // eslint-disable-next-line no-console
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 // eslint-disable-next-line no-console
                 console.log('[RAG] Requesting AI answer:', {
                   model: 'gpt-5.1',
-                  temperature,
+                  temperature: currentTemperature,
                   questionLength: questionText.length,
                   sourcesCount: search.chunks?.length || 0,
                   language: questionLang
                 });
                 
-                const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-5.1', temperature: temperature });
+                const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-5.1', temperature: currentTemperature });
                 
                 if (!answer?.ok) {
                   throw new Error(answer?.error || 'answer failed');
@@ -1527,7 +1533,7 @@ if (currentSuggestedQuestions.length > 0) {
                 
                 // eslint-disable-next-line no-console
                 console.log('[RAG] Answer received:', {
-                  temperature,
+                  temperature: currentTemperature,
                   textLength: answer.text?.length || 0,
                   tokensUsed: answer.tokensUsed,
                   preview: answer.text?.slice(0, 100) || 'empty'
