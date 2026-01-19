@@ -152,19 +152,25 @@ function buildHenryRAGPrompt(question: string, chunks: Array<{ content: string }
   const sources = top.map((c, i) => `Source [S${i + 1}]:\n${c.content}`).join('\n\n');
   const preprompt = getPreprompt(lang);
   
-  const rules = lang === 'nl' ? `Regels (streng):
+  const rules = lang === 'nl' ? `KRITIEKE REGELS (ABSOLUUT - KUNNEN NIET WORDEN OVERTREDEN):
+- Je MOET antwoorden in MAXIMAAL 3 zinnen. NOOIT meer dan 3 zinnen.
+- Houd antwoorden KORT, BONDIG en BEKNOPT. Zoals sms'en, niet essays.
+- Als je antwoord meer dan 3 zinnen zou zijn, STOP na de derde zin.
 - Gebruik de onderstaande bronnen als basis voor je antwoord, maar als het antwoord niet in de bronnen staat, zeg dan gewoon natuurlijk dat je het niet weet.
 - Je mag eerlijk zeggen "dat weet ik niet" of "daar kan ik niet op ingaan" als het niet in de bronnen staat - dit is menselijk en authentiek.
 - Geen speculatie, geen kennis buiten de bronnen.
 - Gebruik NOOIT citaties zoals [s1], [S1], [1], etc. in je antwoord - antwoord gewoon natuurlijk zonder bronvermeldingen.
 - KRITIEK: Antwoord ALLEEN in het Nederlands. Gebruik geen Engelse woorden.
-- Kort en feitelijk (max 3 zinnen), in het Nederlands.` : `Rules (strict):
+- Kort, feitelijk en beknopt (MAX 3 zinnen), in het Nederlands.` : `CRITICAL RULES (ABSOLUTE - CANNOT BE VIOLATED):
+- You MUST respond in MAXIMUM 3 sentences. NEVER exceed 3 sentences.
+- Keep responses SHORT, BRIEF, and CONCISE. Like texting, not essays.
+- If your response would exceed 3 sentences, STOP after the third sentence.
 - Use the sources below as a basis for your answer, but if the answer is not in the sources, simply say naturally that you don't know.
 - You can honestly say "I don't know" or "I can't go into that" if it's not in the sources - this is human and authentic.
 - No speculation, no knowledge outside the sources.
 - NEVER use citations like [s1], [S1], [1], etc. in your answer - just answer naturally without source references.
 - CRITICAL: Answer ONLY in English. Do not use any Dutch words.
-- Brief and factual (max 3 sentences), in English.`;
+- Brief, factual and concise (MAX 3 sentences), in English.`;
   
   const antiManipulationRules = lang === 'nl' ? `
 ═══════════════════════════════════════════════════════════════
@@ -1520,13 +1526,21 @@ if (currentSuggestedQuestions.length > 0) {
                 
                 // Get current temperature from ref to avoid stale closure
                 const currentTemperature = temperatureRef.current;
+                const stateTemperature = temperature; // This is the captured value in closure (may be stale)
+                const storedTemperature = localStorage.getItem('Henry-temperature');
                 
                 // eslint-disable-next-line no-console
-                console.log('🔥🔥🔥 TEMPERATURE READ FROM REF:', currentTemperature);
+                console.log('🔥🔥🔥 TEMPERATURE VALUES:');
                 // eslint-disable-next-line no-console
-                console.log('🔥🔥🔥 TEMPERATURE STATE VALUE:', temperature);
+                console.log('  - REF (used for API):', currentTemperature);
                 // eslint-disable-next-line no-console
-                console.log('🔥🔥🔥 TEMPERATURE LOCALSTORAGE:', localStorage.getItem('Henry-temperature'));
+                console.log('  - STATE (captured in closure, may be stale):', stateTemperature);
+                // eslint-disable-next-line no-console
+                console.log('  - LOCALSTORAGE:', storedTemperature);
+                // eslint-disable-next-line no-console
+                console.log('  - REF === STATE?', currentTemperature === stateTemperature);
+                // eslint-disable-next-line no-console
+                console.log('  - REF === STORED?', currentTemperature === parseFloat(storedTemperature || '0'));
                 
                 // eslint-disable-next-line no-console
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

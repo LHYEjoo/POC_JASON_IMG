@@ -79,6 +79,9 @@ export default function InputBar({
                 fontFamily: 'Simplistic Sans',
                 fontSize: '16px', // Task A: Explicit 16px to prevent iOS Safari auto-zoom
                 WebkitTextSizeAdjust: '100%', // Prevent iOS Safari text size adjustment
+                // Override CSS !important rules for dark mode
+                backgroundColor: 'var(--input-bg, #ffffff)',
+                color: 'var(--input-text, #000000)',
               }}
             />
             {showInterim && (
