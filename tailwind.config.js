@@ -27,7 +27,7 @@ export default {
         },
       },
       animation: {
-        fade: 'fade 200ms ease-out',
+        fade: 'fade 350ms ease-out',
       },
       fontFamily: {
         sans: ['"Simplistic Sans"', 'sans-serif'],

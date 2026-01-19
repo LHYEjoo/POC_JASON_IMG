@@ -7,6 +7,7 @@ import SuggestedPrompts from '../components/SuggestedPrompts';
 import InputBar from '../components/InputBar';
 import Toast from '../components/Toast';
 import SettingsModal from '../components/SettingsModal';
+import InfoModal from '../components/InfoModal';
 import { brand } from '../config/brand';
 import { reducer, type UIState, type UIContext, type Action } from '../state/machine';
 import { useRobustSpeechRecognition } from '../hooks/useRobustSpeechRecognition';
@@ -570,6 +571,7 @@ export default function DigitalShadow() {
   const [toast, setToast] = React.useState<string>('');
   const [inputText, setInputText] = React.useState<string>('');
   const [showSettings, setShowSettings] = React.useState<boolean>(false);
+  const [showInfo, setShowInfo] = React.useState<boolean>(false);
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
   const audioEnabledRef = React.useRef(audioEnabled);
@@ -1909,13 +1911,13 @@ if (currentSuggestedQuestions.length > 0) {
     };
   }, [resetSuggestionsTimer]);
 
-  // Delay for typing indicator ("thinking cloud"): show 0.5s after AI typing starts
+  // Delay for typing indicator ("thinking cloud"): show a bit after AI typing starts
   const [showTypingIndicator, setShowTypingIndicator] = React.useState(false);
   React.useEffect(() => {
     if (ui === 'ai_response_typing') {
       const timer = setTimeout(() => {
         setShowTypingIndicator(true);
-      }, 500);
+      }, 800);
       return () => {
         clearTimeout(timer);
         setShowTypingIndicator(false);
@@ -2000,7 +2002,13 @@ if (currentSuggestedQuestions.length > 0) {
     >
       {/* Header - sticky at top */}
       <div className="shrink-0">
-        <HeaderBar name="Henry" location="Hong Kong" flag="🇭🇰" onSettingsClick={() => setShowSettings(true)} />
+        <HeaderBar
+          name="Henry"
+          location="Hong Kong"
+          flag="🇭🇰"
+          onInfoClick={() => setShowInfo(true)}
+          onSettingsClick={() => setShowSettings(true)}
+        />
       </div>
 
       {/* Messages area - scrollable */}
@@ -2232,6 +2240,14 @@ if (currentSuggestedQuestions.length > 0) {
         onDarkModeToggle={(enabled) => {
           setDarkMode(enabled);
         }}
+      />
+
+      {/* Info Modal */}
+      <InfoModal
+        isOpen={showInfo}
+        onClose={() => setShowInfo(false)}
+        language={language}
+        sources={allSources}
       />
 
     </div>

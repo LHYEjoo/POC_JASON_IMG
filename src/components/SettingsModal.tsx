@@ -1,5 +1,4 @@
 import * as React from 'react';
-import DisclaimerInline from './DisclaimerInline';
 import { cn } from '../utils/cn';
 import { type Language } from '../config/prompt';
 
@@ -97,11 +96,6 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
 
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
-          {/* AI Disclaimer - First */}
-          <div className="mb-8">
-            <DisclaimerInline />
-          </div>
-
           {/* Audio Toggle */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
@@ -214,100 +208,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
             </div>
           )}
 
-          {/* Sources - Not in a box */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {language === 'nl' ? 'Bronnen' : 'Sources'}
-            </h3>
-            <ul className="space-y-3">
-              {/* Predefined sources - always shown */}
-              <li className="text-sm text-gray-700">
-                <span className="font-medium">
-                  {language === 'nl' ? 'Bron 1:' : 'Source 1:'}
-                </span>{' '}
-                <a 
-                  href="https://hongkongfp.com/2020/07/24/hong-kong-newlyweds-acquitted-of-rioting-charges/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[#00ABFE] hover:underline"
-                >
-                  Hong Kong newlyweds acquitted of rioting charges (HKFP)
-                </a>
-              </li>
-              <li className="text-sm text-gray-700">
-                <span className="font-medium">
-                  {language === 'nl' ? 'Bron 2:' : 'Source 2:'}
-                </span>{' '}
-                <a 
-                  href="https://hongkongfp.com/2019/08/04/not-even-nuclear-explosion-set-us-apart-hong-kong-couple-wed-days-charged-rioting/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[#00ABFE] hover:underline"
-                >
-                  Henry and Elaine marriage (HKFP)
-                </a>
-              </li>
-              <li className="text-sm text-gray-700">
-                <span className="font-medium">
-                  {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
-                </span>{' '}
-                {language === 'nl' 
-                  ? 'Video interview met Henry (niet toegankelijk voor gebruikers)'
-                  : 'Video interview with Henry (not accessible for users)'}
-              </li>
-              <li className="text-sm text-gray-700">
-                <span className="font-medium">
-                  {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
-                </span>{' '}
-                {language === 'nl' 
-                  ? 'Interview met Henry (niet toegankelijk voor gebruikers)'
-                  : 'Interview with Henry (not accessible for users)'}
-              </li>
-              {/* Additional sources from questions */}
-              {sources.length > 0 && (
-                <>
-                  {sources.map((source, index) => (
-                    <li key={source.documentId} className="text-sm text-gray-700">
-                      <span className="font-medium">
-                        {language === 'nl' ? `Bron ${index + 5}:` : `Source ${index + 5}:`}
-                      </span>{' '}
-                      {source.title}
-                    </li>
-                  ))}
-                </>
-              )}
-            </ul>
-          </div>
-
-          {/* Contact for original files */}
-          <div className="mb-8">
-            <p className="text-sm text-gray-600">
-              {language === 'nl' 
-                ? (
-                  <>
-                    Als je geïnteresseerd bent in het bekijken van de originele bestanden, neem dan contact met ons op via{' '}
-                    <a 
-                      href="mailto:L.Ye@vpro.nl" 
-                      className="text-[#00ABFE] hover:underline font-medium"
-                    >
-                      L.Ye@vpro.nl
-                    </a>
-                    {' '}om toegang te vragen voor de bestanden en de reden.
-                  </>
-                ) : (
-                  <>
-                    If you are interested in viewing the original files, please contact us at{' '}
-                    <a 
-                      href="mailto:L.Ye@vpro.nl" 
-                      className="text-[#00ABFE] hover:underline font-medium"
-                    >
-                      L.Ye@vpro.nl
-                    </a>
-                    {' '}to request access to the files and provide your reasoning.
-                  </>
-                )}
-            </p>
-          </div>
+          {/* Sources & contact moved to InfoModal */}
         </div>
 
         {/* Footer with Reset Button */}
