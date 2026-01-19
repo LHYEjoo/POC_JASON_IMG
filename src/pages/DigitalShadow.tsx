@@ -535,6 +535,8 @@ export default function DigitalShadow() {
   
   React.useEffect(() => {
     localStorage.setItem('Henry-temperature', temperature.toString());
+    // eslint-disable-next-line no-console
+    console.log('[SETTINGS] Temperature updated:', temperature);
   }, [temperature]);
 
   // ---------- UI state machine ----------
@@ -752,7 +754,13 @@ export default function DigitalShadow() {
         }
         
         // eslint-disable-next-line no-console
-        console.log('[DISPATCH] RECOG_RESULT/ADD_USER', { text: text.slice(0, 50), speechId });
+        console.log('═══════════════════════════════════════════════════════════');
+        // eslint-disable-next-line no-console
+        console.log('[USER] Message received:', { 
+          text: text.slice(0, 50), 
+          fullLength: text.length,
+          speechId 
+        });
 
         // Prevent multiple AI responses for the same user input
         // But allow if we're transitioning from recording to typing
@@ -1499,12 +1507,33 @@ if (currentSuggestedQuestions.length > 0) {
                   }
 
                 const messages = buildHenryRAGPrompt(questionText, search.chunks || [], questionLang);
+                
+                // eslint-disable-next-line no-console
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                // eslint-disable-next-line no-console
+                console.log('[RAG] Requesting AI answer:', {
+                  model: 'gpt-5.1',
+                  temperature,
+                  questionLength: questionText.length,
+                  sourcesCount: search.chunks?.length || 0,
+                  language: questionLang
+                });
+                
                 const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-5.1', temperature: temperature });
+                
                 if (!answer?.ok) {
                   throw new Error(answer?.error || 'answer failed');
                 }
+                
                 // eslint-disable-next-line no-console
-                console.log('[RAG] answering with sources; temperature=', temperature);
+                console.log('[RAG] Answer received:', {
+                  temperature,
+                  textLength: answer.text?.length || 0,
+                  tokensUsed: answer.tokensUsed,
+                  preview: answer.text?.slice(0, 100) || 'empty'
+                });
+                // eslint-disable-next-line no-console
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 // Use UI language for fallback messages, not detected question language
                 let fullText = answer.text || (isSensitive
                   ? (language === 'nl'

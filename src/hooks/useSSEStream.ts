@@ -63,12 +63,22 @@ export async function streamChat(
   // Get threadId from localStorage
   const threadId = localStorage.getItem('threadId');
   
+  const clampedTemperature = Math.max(0, Math.min(1, temperature));
+  
   const requestBody = { 
     mode: 'stream', 
     message: userText,
     threadId: threadId,
-    temperature: Math.max(0, Math.min(1, temperature))
+    temperature: clampedTemperature
   };
+  
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('[SSE] Requesting stream chat:', {
+    model: 'gpt-5.1',
+    temperature: clampedTemperature,
+    messageLength: userText.length,
+    threadId: threadId || 'new'
+  });
   
   const res = await fetch('/api/chat', {
     method: 'POST',
@@ -93,6 +103,7 @@ export async function streamChat(
   let final: { text: string; audioUrl?: string } | null = null;
   let buffer = '';
   let chunkCount = 0;
+  const requestTemperature = clampedTemperature; // Store for logging
 
   while (true) {
     const { value, done } = await reader.read();
@@ -126,6 +137,12 @@ export async function streamChat(
         }
         if (payload.type === 'final') {
           final = { text: payload.text, audioUrl: payload.audioUrl };
+          console.log('[SSE] Final response received:', {
+            temperature: requestTemperature,
+            textLength: payload.text?.length || 0,
+            hasAudio: !!payload.audioUrl
+          });
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         }
       } catch (e) {
         console.error('[SSE] Parse error for line:', raw, e);

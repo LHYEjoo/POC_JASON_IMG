@@ -49,16 +49,29 @@ export default async function handler(req: any, res: any) {
     ? Math.max(0, Math.min(1, body.temperature))
     : 0;
 
+  console.log('[api/answer] Request:', {
+    model,
+    temperature,
+    messageCount: messages.length,
+    hasTemperature: typeof body.temperature === 'number'
+  });
+
   if (messages.length === 0) {
     res.status(400).json({ ok: false, error: 'Missing messages' } satisfies AnswerResponse);
     return;
   }
 
   try {
+    console.log('[api/answer] Calling OpenAI with:', { model, temperature, messageCount: messages.length });
     const completion = await openai.chat.completions.create({
       model,
       messages,
       temperature,
+    });
+    console.log('[api/answer] OpenAI response received:', {
+      temperature,
+      tokensUsed: (completion as any).usage?.total_tokens,
+      textLength: completion.choices?.[0]?.message?.content?.length || 0
     });
     const text = completion.choices?.[0]?.message?.content ?? '';
     const tokensUsed =

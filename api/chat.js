@@ -44,6 +44,15 @@ export default async function handler(req, res) {
       return close({ type: 'final', text: 'Server mist OPENAI_API_KEY (prod env).' });
     }
 
+    const temperature = typeof req.body.temperature === 'number' ? Math.max(0, Math.min(1, req.body.temperature)) : 0;
+    
+    console.log('[CHAT] Request:', {
+      model: 'gpt-5.1',
+      temperature,
+      hasTemperature: typeof req.body.temperature === 'number',
+      messageLength: prompt.length
+    });
+
     console.log('[CHAT] Using regular chat completions (fallback)...');
 
     // Use regular chat completions instead of Assistant API
@@ -56,7 +65,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'gpt-5.1',
         stream: true,
-        temperature: typeof req.body.temperature === 'number' ? Math.max(0, Math.min(1, req.body.temperature)) : 0,
+        temperature,
         messages: [
           { 
             role: 'system', 
