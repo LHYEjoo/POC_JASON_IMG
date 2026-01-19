@@ -44,7 +44,7 @@ export default function InputBar({
   const recordingActive = isRecording || sttStatus === 'listening';
 
   return (
-    <div className="w-full bg-[var(--color-jerboa)] border-t border-black/10">
+    <div className="w-full bg-[var(--color-jerboa)] dark:bg-[var(--color-jerboa)] border-t border-black/10 dark:border-white/10">
       <div className="mx-auto max-w-4xl px-3 sm:px-6 py-2 sm:py-3">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
           {/* Text input with mic button inside on the right */}
@@ -64,7 +64,9 @@ export default function InputBar({
               placeholder={showInterim ? undefined : placeholder}
               disabled={sttStatus === 'listening'}
               className={cn(
-                'w-full rounded-[16px] border border-wolf bg-white dark:bg-gray-700 pr-12 sm:pr-14', // Task B: Add right padding for mic button
+                'w-full rounded-[16px] border pr-12 sm:pr-14', // Task B: Add right padding for mic button
+                'border-gray-300 dark:border-gray-600', // Border colors for light/dark mode
+                'bg-white dark:bg-gray-700', // Background colors for light/dark mode
                 'pl-3 py-2.5 sm:pl-4 sm:py-3',
                 'text-base sm:text-base composer-input', // Task A: Use text-base (16px) on mobile to prevent iOS Safari zoom
                 'text-gray-900 dark:text-white', // Dark mode text color
@@ -100,7 +102,7 @@ export default function InputBar({
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
                 recordingActive
                   ? 'bg-accent animate-pulse'
-                  : 'bg-transparent hover:bg-gray-100'
+                  : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-600'
               )}
             >
               {recordingActive && (
