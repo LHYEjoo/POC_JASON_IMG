@@ -594,10 +594,10 @@ export default function DigitalShadow() {
     }
     // Hide suggestions immediately on interaction
     setShowSuggestions(false);
-    // Show again after 10s of inactivity
+    // Show again after 15s of inactivity
     suggestionsTimerRef.current = setTimeout(() => {
       setShowSuggestions(true);
-    }, 10000);
+    }, 15000);
   }, []);
 
   // ---------- Conversation Storage ----------
@@ -1908,41 +1908,33 @@ if (currentSuggestedQuestions.length > 0) {
   cancelIdleTimerRef.current = cancelIdleTimer;
 
   // Start suggestions inactivity timer on mount and clean up on unmount
+  // Only start timer after intro modal is closed
   React.useEffect(() => {
-    resetSuggestionsTimer();
+    if (!showIntro) {
+      resetSuggestionsTimer();
+    }
     return () => {
       if (suggestionsTimerRef.current) {
         clearTimeout(suggestionsTimerRef.current);
       }
     };
-  }, [resetSuggestionsTimer]);
+  }, [showIntro, resetSuggestionsTimer]);
 
   // Also reset suggestions timer after Henry's last message, so panel waits
-  // 10s from the end of his answer instead of from the user's question
+  // 15s from the end of his answer instead of from the user's question
+  // Only reset if intro modal is closed
   React.useEffect(() => {
-    if (ui === 'idle' && ctx.messages.length > 0) {
+    if (!showIntro && ui === 'idle' && ctx.messages.length > 0) {
       const last = ctx.messages[ctx.messages.length - 1];
       if (last.role === 'ai') {
         resetSuggestionsTimer();
       }
     }
-  }, [ui, ctx.messages.length, resetSuggestionsTimer]);
+  }, [showIntro, ui, ctx.messages.length, resetSuggestionsTimer]);
 
-  // Delay for typing indicator ("thinking cloud"): show a bit after AI typing starts
+  // Typing indicator: show 1 second after each previous message when Henry is about to generate an answer
   const [showTypingIndicator, setShowTypingIndicator] = React.useState(false);
-  React.useEffect(() => {
-    if (ui === 'ai_response_typing') {
-      const timer = setTimeout(() => {
-        setShowTypingIndicator(true);
-      }, 800);
-      return () => {
-        clearTimeout(timer);
-        setShowTypingIndicator(false);
-      };
-    } else {
-      setShowTypingIndicator(false);
-    }
-  }, [ui]);
+  const prevMessageCountForTypingRef = React.useRef(ctx.messages.length);
 
   // Precompute which messages should show avatars (last AI message in each sequence)
   // This avoids computing inside the map and reduces re-renders
@@ -1975,6 +1967,9 @@ if (currentSuggestedQuestions.length > 0) {
   }, [ctx.messages]);
 
   React.useEffect(() => {
+    // Don't animate initial messages until intro modal is closed
+    if (showIntro) return;
+    
     if (!shouldAnimateInitialMessages) {
       // When we're no longer in the pure initial-story state, always show all messages
       if (initialMessagesVisible !== ctx.messages.length) {
@@ -1996,7 +1991,37 @@ if (currentSuggestedQuestions.length > 0) {
     }, typingDelay);
 
     return () => clearTimeout(timer);
-  }, [shouldAnimateInitialMessages, ctx.messages, initialMessagesVisible]);
+  }, [showIntro, shouldAnimateInitialMessages, ctx.messages, initialMessagesVisible]);
+
+  // Show typing indicator 1 second after each previous message when Henry is about to generate an answer
+  React.useEffect(() => {
+    // Check if a new message was just added
+    const messageCountChanged = ctx.messages.length !== prevMessageCountForTypingRef.current;
+    prevMessageCountForTypingRef.current = ctx.messages.length;
+    
+    // Show typing indicator when:
+    // 1. UI is in 'ai_response_typing' state (Henry is about to generate an answer)
+    // 2. OR we're animating initial messages and there are more to show
+    const shouldShow = ui === 'ai_response_typing' || 
+                      (shouldAnimateInitialMessages && initialMessagesVisible < Math.min(ctx.messages.length, 3));
+    
+    if (shouldShow) {
+      // If a message was just added, wait 1 second before showing typing indicator
+      // Otherwise, show immediately (for initial state or when UI changes to ai_response_typing)
+      const delay = messageCountChanged ? 1000 : 0;
+      
+      const timer = setTimeout(() => {
+        setShowTypingIndicator(true);
+      }, delay);
+      
+      return () => {
+        clearTimeout(timer);
+        setShowTypingIndicator(false);
+      };
+    } else {
+      setShowTypingIndicator(false);
+    }
+  }, [ui, ctx.messages.length, shouldAnimateInitialMessages, initialMessagesVisible]);
 
   const messagesForRender = React.useMemo(() => {
     if (shouldAnimateInitialMessages) {
@@ -2121,8 +2146,8 @@ if (currentSuggestedQuestions.length > 0) {
           />
         </div>
 
-        {/* Suggestions Panel - Only show when idle and showSuggestions is true */}
-        {ui === 'idle' && showSuggestions && (
+        {/* Suggestions Panel - Only show when idle, showSuggestions is true, and intro modal is closed */}
+        {ui === 'idle' && showSuggestions && !showIntro && (
           <div
             data-suggestions-panel
             className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden animate-fadeSlow ${
