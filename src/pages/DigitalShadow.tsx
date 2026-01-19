@@ -394,34 +394,13 @@ function splitIntoBursts(text: string, maxBursts = 3): BurstPair[] {
   // eslint-disable-next-line no-console
   console.log('[splitIntoBursts] Sentence pairs:', sentencePairs.map(p => ({ display: p.display.slice(0, 30), tts: p.tts.slice(0, 30) })));
   
-  if (sentencePairs.length <= maxBursts) {
-    // eslint-disable-next-line no-console
-    console.log('[splitIntoBursts] Returning', sentencePairs.length, 'sentences (<= maxBursts)');
-    return sentencePairs;
-  }
-  
-  // Group sentences evenly into maxBursts chunks
-  const groups: BurstPair[][] = Array.from({ length: maxBursts }, () => []);
-  sentencePairs.forEach((s, i) => {
-    groups[Math.min(i, maxBursts - 1)].push(s);
-  });
-  
-  // Combine grouped sentences: join TTS versions and display versions separately
-  // Make sure to preserve punctuation when joining - sentences already have their punctuation
-  const result = groups
-    .map(g => {
-      if (g.length === 0) return null;
-      // Join sentences with a space, preserving each sentence's punctuation
-      return {
-        tts: g.map(p => p.tts).join(' '),
-        display: g.map(p => p.display).join(' ')
-      };
-    })
-    .filter((g): g is BurstPair => g !== null && g.display.length > 0);
+  // Return each sentence as a separate burst (1 sentence per message)
+  // Limit to maxBursts to prevent too many messages
+  const limitedPairs = sentencePairs.slice(0, maxBursts);
   
   // eslint-disable-next-line no-console
-  console.log('[splitIntoBursts] Final grouped result:', result.map(r => ({ display: r.display.slice(0, 30), tts: r.tts.slice(0, 30) })));
-  return result;
+  console.log('[splitIntoBursts] Returning', limitedPairs.length, 'separate messages (1 sentence each, max', maxBursts, 'messages)');
+  return limitedPairs;
 }
 
 function formatGroupedCitations(sources: any[], chunks: any[], lang: Language): string {
