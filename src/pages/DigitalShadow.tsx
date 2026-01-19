@@ -153,14 +153,16 @@ function buildHenryRAGPrompt(question: string, chunks: Array<{ content: string }
   const preprompt = getPreprompt(lang);
   
   const rules = lang === 'nl' ? `Regels (streng):
-- Antwoord ALLEEN op basis van de onderstaande bronnen.
-- Als het niet in de bronnen staat, zeg menselijk dat je het niet weet of aangeeft dat je hier niet op kunt ingaan uit angst gevonden te worden.
+- Gebruik de onderstaande bronnen als basis voor je antwoord, maar als het antwoord niet in de bronnen staat, zeg dan gewoon natuurlijk dat je het niet weet.
+- Je mag eerlijk zeggen "dat weet ik niet" of "daar kan ik niet op ingaan" als het niet in de bronnen staat - dit is menselijk en authentiek.
 - Geen speculatie, geen kennis buiten de bronnen.
+- Gebruik NOOIT citaties zoals [s1], [S1], [1], etc. in je antwoord - antwoord gewoon natuurlijk zonder bronvermeldingen.
 - KRITIEK: Antwoord ALLEEN in het Nederlands. Gebruik geen Engelse woorden.
 - Kort en feitelijk (max 3 zinnen), in het Nederlands.` : `Rules (strict):
-- Answer ONLY based on the sources below.
-- If it's not in the sources, say humanly that you don't know or indicate that you can't go into this out of fear of being found.
+- Use the sources below as a basis for your answer, but if the answer is not in the sources, simply say naturally that you don't know.
+- You can honestly say "I don't know" or "I can't go into that" if it's not in the sources - this is human and authentic.
 - No speculation, no knowledge outside the sources.
+- NEVER use citations like [s1], [S1], [1], etc. in your answer - just answer naturally without source references.
 - CRITICAL: Answer ONLY in English. Do not use any Dutch words.
 - Brief and factual (max 3 sentences), in English.`;
   
@@ -263,6 +265,12 @@ Question: ${sanitizedQuestion}`;
     { role: 'system', content: sys },
     { role: 'user', content: user },
   ] as Array<{ role: 'system' | 'user'; content: string }>;
+}
+
+// Remove citation patterns like [s1], [S1], [1], etc. from text
+function removeCitations(text: string): string {
+  // Remove patterns like [s1], [S1], [s2], [1], [2], etc.
+  return text.replace(/\[\s*[sS]?\d+\s*\]/g, '').trim();
 }
 
 // Remove trailing periods from text (like normal texting behavior)
@@ -1505,6 +1513,9 @@ if (currentSuggestedQuestions.length > 0) {
                   : (language === 'nl'
                       ? 'Hmmm, sorry ik ben niet de juiste persoon om dat te beantwoorden.'
                       : 'Hmm, sorry I\'m not the right person to answer that.'));
+            
+                // Remove citation patterns like [s1], [S1], etc. from the answer
+                fullText = removeCitations(fullText);
             
                 // Don't remove periods here - let splitIntoBursts handle it after splitting
                 // This preserves sentence boundaries for proper message splitting

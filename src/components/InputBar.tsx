@@ -64,12 +64,14 @@ export default function InputBar({
               placeholder={showInterim ? undefined : placeholder}
               disabled={sttStatus === 'listening'}
               className={cn(
-                'w-full rounded-[16px] border border-wolf bg-white pr-12 sm:pr-14', // Task B: Add right padding for mic button
+                'w-full rounded-[16px] border border-wolf bg-white dark:bg-gray-700 pr-12 sm:pr-14', // Task B: Add right padding for mic button
                 'pl-3 py-2.5 sm:pl-4 sm:py-3',
                 'text-base sm:text-base composer-input', // Task A: Use text-base (16px) on mobile to prevent iOS Safari zoom
+                'text-gray-900 dark:text-white', // Dark mode text color
+                'placeholder:text-gray-500 dark:placeholder:text-gray-400', // Placeholder color
                 'shadow-vpro focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
-                sttStatus === 'listening' && 'bg-blue-50'
+                sttStatus === 'listening' && 'bg-blue-50 dark:bg-blue-900/30'
               )}
               style={{
                 fontFamily: 'Simplistic Sans',

@@ -116,7 +116,7 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
                   rel="noopener noreferrer"
                   className="text-[#00ABFE] hover:underline"
                 >
-                  Hong Kong newlyweds acquitted of rioting charges (HKFP)
+                  Hong Kong newlyweds acquitted of rioting charges || HKFP (Artikel)
                 </a>
               </li>
               <li>
@@ -129,7 +129,7 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
                   rel="noopener noreferrer"
                   className="text-[#00ABFE] hover:underline"
                 >
-                  Henry and Elaine marriage (HKFP)
+                  Henry and Elaine marriage || HKFP (Artikel)
                 </a>
               </li>
               <li>
@@ -148,20 +148,37 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
                   ? 'Interview met Henry (niet toegankelijk voor gebruikers)'
                   : 'Interview with Henry (not accessible for users)'}
               </li>
-
-              {/* Additional dynamic sources */}
-              {sources.length > 0 &&
-                sources.map((source, index) => (
-                  <li key={source.documentId}>
-                    <span className="font-medium">
-                      {language === 'nl'
-                        ? `Bron ${index + 5}:`
-                        : `Source ${index + 5}:`}
-                    </span>{' '}
-                    {source.title}
-                  </li>
-                ))}
             </ul>
+          </section>
+           {/* Contact for original files */}
+           <section>
+            <p className="text-sm text-gray-600">
+              {language === 'nl' ? (
+                <>
+                  <i>Als je geïnteresseerd bent in het bekijken van de originele
+                  bestanden, neem dan contact met ons op via{' '}
+                  <a
+                    href="mailto:L.Ye@vpro.nl"
+                    className="text-[#00ABFE] hover:underline font-medium"
+                  >
+                    L.Ye@vpro.nl
+                  </a>{' '}
+                  om toegang te vragen voor de bestanden en de reden. </i>
+                </>
+              ) : (
+                <>
+                  <i>If you are interested in viewing the original files, please
+                  contact us at{' '}
+                  <a
+                    href="mailto:L.Ye@vpro.nl"
+                    className="text-[#00ABFE] hover:underline font-medium"
+                  >
+                    L.Ye@vpro.nl
+                  </a>{' '}
+                  to request access to the files and provide your reasoning.</i>
+                </>
+              )}
+            </p>
           </section>
 
           {/* Ruben series link */}
@@ -176,7 +193,7 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
                 rel="noopener noreferrer"
                 className="text-[#00ABFE] hover:underline font-medium"
               >
-                prototype for Ruben langs de zuid chinese zee series
+                Meer info over Ruben langs de Zuid-Chinese Zee
               </a>
             </p>
             <p className="text-sm text-gray-700 space-y-2">
@@ -195,7 +212,7 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
                     onthuld vanwege de televisieserie, waarin zijn gezicht en
                     stem ongewijzigd in beeld komen. Om verwarring te voorkomen
                     hebben we ervoor gekozen zijn identiteit hier te behouden,
-                    maar het testen en prototypen is gedaan met een pseudoniem,
+                    maar het testen en prototypen de afgelopen maanden is gedaan met een pseudoniem,
                     een AI‑gegenereerd portret en een nieuwe stem.
                   </span>
                   <span className="block">
@@ -257,36 +274,7 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
             </p>
           </section>
 
-          {/* Contact for original files */}
-          <section>
-            <p className="text-sm text-gray-600">
-              {language === 'nl' ? (
-                <>
-                  Als je geïnteresseerd bent in het bekijken van de originele
-                  bestanden, neem dan contact met ons op via{' '}
-                  <a
-                    href="mailto:L.Ye@vpro.nl"
-                    className="text-[#00ABFE] hover:underline font-medium"
-                  >
-                    L.Ye@vpro.nl
-                  </a>{' '}
-                  om toegang te vragen voor de bestanden en de reden.
-                </>
-              ) : (
-                <>
-                  If you are interested in viewing the original files, please
-                  contact us at{' '}
-                  <a
-                    href="mailto:L.Ye@vpro.nl"
-                    className="text-[#00ABFE] hover:underline font-medium"
-                  >
-                    L.Ye@vpro.nl
-                  </a>{' '}
-                  to request access to the files and provide your reasoning.
-                </>
-              )}
-            </p>
-          </section>
+         
         </div>
       </div>
     </div>
