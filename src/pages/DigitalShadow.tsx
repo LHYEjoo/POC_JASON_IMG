@@ -455,7 +455,13 @@ const getInitialMessages = (lang: Language): Array<{ id: string; role: 'ai' | 'u
       {
         id: 'initial-2',
         role: 'ai',
-        text: 'I had to leave everything behind, even the last memories of my parents Now I\'m trying to build a new life here But even from a distance I never feel completely safe',
+        text: 'I had to leave everything behind, even the last memories of my parents',
+        status: 'final',
+      },
+      {
+        id: 'initial-3',
+        role: 'ai',
+        text: 'Now I\'m trying to build a new life here, but even from a distance I never feel completely safe.',
         status: 'final',
       },
     ];
@@ -472,7 +478,13 @@ const getInitialMessages = (lang: Language): Array<{ id: string; role: 'ai' | 'u
     {
       id: 'initial-2',
       role: 'ai',
-      text: 'Ik moest alles achterlaten, zelfs de laatste herinneringen aan mijn ouders Nu probeer ik hier een nieuw leven op te bouwen Maar zelfs van een afstand voel ik me nooit helemaal veilig',
+      text: 'Ik moest alles achterlaten, zelfs de laatste herinneringen aan mijn ouders.',
+      status: 'final',
+    },
+    {
+      id: 'initial-3',
+      role: 'ai',
+      text: 'Nu probeer ik hier een nieuw leven op te bouwen, maar zelfs op een afstand voel ik me nooit helemaal veilig.',
       status: 'final',
     },
   ];
@@ -1897,6 +1909,22 @@ if (currentSuggestedQuestions.length > 0) {
     };
   }, [resetSuggestionsTimer]);
 
+  // Delay for typing indicator ("thinking cloud"): show 0.5s after AI typing starts
+  const [showTypingIndicator, setShowTypingIndicator] = React.useState(false);
+  React.useEffect(() => {
+    if (ui === 'ai_response_typing') {
+      const timer = setTimeout(() => {
+        setShowTypingIndicator(true);
+      }, 500);
+      return () => {
+        clearTimeout(timer);
+        setShowTypingIndicator(false);
+      };
+    } else {
+      setShowTypingIndicator(false);
+    }
+  }, [ui]);
+
   // Precompute which messages should show avatars (last AI message in each sequence)
   // This avoids computing inside the map and reduces re-renders
   const showAvatarMap = React.useMemo(() => {
@@ -1913,7 +1941,7 @@ if (currentSuggestedQuestions.length > 0) {
     return map;
   }, [ctx.messages]);
 
-  // Initial story messages: reveal the first two AI intro messages one by one
+  // Initial story messages: reveal the intro messages one by one (texting effect)
   const [initialMessagesVisible, setInitialMessagesVisible] = React.useState<number>(1);
   const shouldAnimateInitialMessages = React.useMemo(() => {
     if (ctx.messages.length < 2) return false;
@@ -1936,14 +1964,20 @@ if (currentSuggestedQuestions.length > 0) {
       return;
     }
 
-    // Reveal the second intro message after a short delay
-    if (initialMessagesVisible < 2) {
-      const timer = setTimeout(() => {
-        setInitialMessagesVisible(2);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldAnimateInitialMessages, ctx.messages.length, initialMessagesVisible]);
+    const maxInitial = Math.min(ctx.messages.length, 3);
+    if (initialMessagesVisible >= maxInitial) return;
+
+    const nextIndex = initialMessagesVisible; // reveal next message
+    const nextMsg = ctx.messages[nextIndex];
+    const text = nextMsg?.text || '';
+    const typingDelay = Math.min(800 + (text.length / 10) * 200, 2500);
+
+    const timer = setTimeout(() => {
+      setInitialMessagesVisible((prev) => Math.min(prev + 1, maxInitial));
+    }, typingDelay);
+
+    return () => clearTimeout(timer);
+  }, [shouldAnimateInitialMessages, ctx.messages, initialMessagesVisible]);
 
   const messagesForRender = React.useMemo(() => {
     if (shouldAnimateInitialMessages) {
@@ -2008,7 +2042,7 @@ if (currentSuggestedQuestions.length > 0) {
               )}
 
               {/* Show typing indicator when AI is receiving stream */}
-              {ui === 'ai_response_typing' && <TypingIndicator />}
+              {showTypingIndicator && <TypingIndicator />}
 
               {/* anchor om smooth te scrollen naar onder */}
               <div ref={bottomRef} />
@@ -2066,7 +2100,7 @@ if (currentSuggestedQuestions.length > 0) {
         {ui === 'idle' && showSuggestions && (
           <div
             data-suggestions-panel
-            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden ${
+            className={`bg-[var(--color-jerboa)]/90 dark:bg-[var(--color-jerboa)]/90 backdrop-blur border-t border-black/10 dark:border-white/10 overflow-hidden animate-fade ${
               isMobile ? 'h-32' : 'h-[33vh] min-h-[200px] max-h-[33vh]'
             }`}
           >
