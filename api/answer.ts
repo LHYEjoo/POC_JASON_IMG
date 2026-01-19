@@ -49,9 +49,11 @@ export default async function handler(req: any, res: any) {
     ? Math.max(0, Math.min(1, body.temperature))
     : 0;
 
-  console.log('[api/answer] Request:', {
+  console.log('🔥🔥🔥 [api/answer] REQUEST RECEIVED:', {
     model,
     temperature,
+    temperatureType: typeof body.temperature,
+    temperatureRaw: body.temperature,
     messageCount: messages.length,
     hasTemperature: typeof body.temperature === 'number'
   });
@@ -62,13 +64,13 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    console.log('[api/answer] Calling OpenAI with:', { model, temperature, messageCount: messages.length });
+    console.log('🔥🔥🔥 [api/answer] CALLING OPENAI:', { model, temperature, messageCount: messages.length });
     const completion = await openai.chat.completions.create({
       model,
       messages,
       temperature,
     });
-    console.log('[api/answer] OpenAI response received:', {
+    console.log('🔥🔥🔥 [api/answer] OPENAI RESPONSE:', {
       temperature,
       tokensUsed: (completion as any).usage?.total_tokens,
       textLength: completion.choices?.[0]?.message?.content?.length || 0

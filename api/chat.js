@@ -46,9 +46,11 @@ export default async function handler(req, res) {
 
     const temperature = typeof req.body.temperature === 'number' ? Math.max(0, Math.min(1, req.body.temperature)) : 0;
     
-    console.log('[CHAT] Request:', {
+    console.log('🔥🔥🔥 [CHAT] REQUEST RECEIVED:', {
       model: 'gpt-5.1',
       temperature,
+      temperatureType: typeof req.body.temperature,
+      temperatureRaw: req.body.temperature,
       hasTemperature: typeof req.body.temperature === 'number',
       messageLength: prompt.length
     });

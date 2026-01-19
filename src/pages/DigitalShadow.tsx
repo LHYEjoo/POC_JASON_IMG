@@ -530,13 +530,16 @@ export default function DigitalShadow() {
   // ---------- Temperature state (with localStorage persistence) ----------
   const [temperature, setTemperature] = React.useState<number>(() => {
     const stored = localStorage.getItem('Henry-temperature');
-    return stored ? Math.max(0, Math.min(1, parseFloat(stored))) : 0;
+    const value = stored ? Math.max(0, Math.min(1, parseFloat(stored))) : 0;
+    // eslint-disable-next-line no-console
+    console.log('🔥🔥🔥 TEMPERATURE INITIALIZED:', value, 'from localStorage:', stored);
+    return value;
   });
   
   React.useEffect(() => {
     localStorage.setItem('Henry-temperature', temperature.toString());
     // eslint-disable-next-line no-console
-    console.log('[SETTINGS] Temperature updated:', temperature);
+    console.log('🔥🔥🔥 TEMPERATURE STATE CHANGED:', temperature);
   }, [temperature]);
 
   // ---------- UI state machine ----------
@@ -566,7 +569,11 @@ export default function DigitalShadow() {
   uiRef.current = ui;
 
   const temperatureRef = React.useRef(temperature);
-  temperatureRef.current = temperature;
+  React.useEffect(() => {
+    temperatureRef.current = temperature;
+    // eslint-disable-next-line no-console
+    console.log('🔥🔥🔥 TEMPERATURE REF UPDATED:', temperature, 'ref.current is now:', temperatureRef.current);
+  }, [temperature]);
 
   // Track the active speech-recognition message id (for interim/final linkage)
   const currentSpeechIdRef = React.useRef<string | null>(null);
@@ -1515,6 +1522,13 @@ if (currentSuggestedQuestions.length > 0) {
                 const currentTemperature = temperatureRef.current;
                 
                 // eslint-disable-next-line no-console
+                console.log('🔥🔥🔥 TEMPERATURE READ FROM REF:', currentTemperature);
+                // eslint-disable-next-line no-console
+                console.log('🔥🔥🔥 TEMPERATURE STATE VALUE:', temperature);
+                // eslint-disable-next-line no-console
+                console.log('🔥🔥🔥 TEMPERATURE LOCALSTORAGE:', localStorage.getItem('Henry-temperature'));
+                
+                // eslint-disable-next-line no-console
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 // eslint-disable-next-line no-console
                 console.log('[RAG] Requesting AI answer:', {
@@ -1524,6 +1538,9 @@ if (currentSuggestedQuestions.length > 0) {
                   sourcesCount: search.chunks?.length || 0,
                   language: questionLang
                 });
+                
+                // eslint-disable-next-line no-console
+                console.log('🔥🔥🔥 SENDING TO API /api/answer with temperature:', currentTemperature);
                 
                 const answer = await fetchJSON('/api/answer', { messages, model: 'gpt-5.1', temperature: currentTemperature });
                 
@@ -2340,7 +2357,10 @@ if (currentSuggestedQuestions.length > 0) {
         }}
         temperature={temperature}
         onTemperatureChange={(temp) => {
-          setTemperature(Math.max(0, Math.min(1, temp)));
+          const clamped = Math.max(0, Math.min(1, temp));
+          // eslint-disable-next-line no-console
+          console.log('🔥🔥🔥 onTemperatureChange called:', { input: temp, clamped, currentState: temperature });
+          setTemperature(clamped);
         }}
       />
 

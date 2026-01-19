@@ -228,7 +228,12 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 max="1"
                 step="0.1"
                 value={temperature}
-                onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  const newValue = parseFloat(e.target.value);
+                  // eslint-disable-next-line no-console
+                  console.log('🔥🔥🔥 SLIDER CHANGED:', newValue, 'old value:', temperature);
+                  onTemperatureChange(newValue);
+                }}
                 className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#00ABFE]"
                 style={{
                   background: `linear-gradient(to right, #00ABFE 0%, #00ABFE ${temperature * 100}%, #e5e7eb ${temperature * 100}%, #e5e7eb 100%)`
