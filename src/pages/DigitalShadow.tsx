@@ -1009,16 +1009,19 @@ if (currentSuggestedQuestions.length > 0) {
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                   
                       // Add 2-second delay before first message for pregenerated answers
-                      // Add messages with 0.5s delay between each
+                      // Then pace each burst based on its text length (mimic typing)
                       let cumulativeDelay = 2000;
                   
                       preprompts.bursts.forEach((burst, index) => {
+                        const displayText = removeTrailingPeriods(burst.text);
+                        const typingDelay = Math.min(800 + (displayText.length / 10) * 200, 2500);
+                        const delayForThis = cumulativeDelay;
+                  
                         setTimeout(() => {
                           const msgId = crypto.randomUUID();
                           const shouldHaveImage = index === imageIndex && imageUrl;
                           
                           // Add message without image first (remove trailing periods for display)
-                          const displayText = removeTrailingPeriods(burst.text);
                           dispatchRef.current?.({ 
                             type: 'ADD_AI_MESSAGE', 
                             id: msgId, 
@@ -1053,10 +1056,10 @@ if (currentSuggestedQuestions.length > 0) {
                               }, 500);
                             }
                           }
-                        }, cumulativeDelay);
+                        }, delayForThis);
                     
-                        // 0.5s delay between messages
-                        cumulativeDelay += 500;
+                        // Next message delay based on text length
+                        cumulativeDelay += typingDelay;
                       });
                   
                       prepromptsUsed = true; // Mark that we used preprompts
@@ -1138,16 +1141,19 @@ if (currentSuggestedQuestions.length > 0) {
                       dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                   
                       // Add 2-second delay before first message for pregenerated answers
-                      // Add messages with 0.5s delay between each
+                      // Then pace each burst based on its text length (mimic typing)
                       let cumulativeDelay = 2000;
                   
                       preprompts.bursts.forEach((burst, index) => {
+                        const displayText = removeTrailingPeriods(burst.text);
+                        const typingDelay = Math.min(800 + (displayText.length / 10) * 200, 2500);
+                        const delayForThis = cumulativeDelay;
+                  
                         setTimeout(() => {
                           const msgId = crypto.randomUUID();
                           const shouldHaveImage = index === imageIndex && imageUrl;
                           
                           // Add message without image first (remove trailing periods for display)
-                          const displayText = removeTrailingPeriods(burst.text);
                           dispatchRef.current?.({ 
                             type: 'ADD_AI_MESSAGE', 
                             id: msgId, 
@@ -1182,10 +1188,10 @@ if (currentSuggestedQuestions.length > 0) {
                               }, 500);
                             }
                           }
-                        }, cumulativeDelay);
+                        }, delayForThis);
                     
-                        // 0.5s delay between messages
-                        cumulativeDelay += 500;
+                        // Next message delay based on text length
+                        cumulativeDelay += typingDelay;
                       });
                   
                       prepromptsUsed = true; // Mark that we used preprompts
@@ -1523,13 +1529,16 @@ if (currentSuggestedQuestions.length > 0) {
                   // Show typing indicator
                   dispatchRef.current?.({ type: 'AI_START', id: crypto.randomUUID() });
                 
-                  // Add messages with 0.5s delay between each
+                  // Add messages with delays based on text length (mimic typing)
                   // For generated answers, image goes on last burst (after filtering)
                   // Calculate imageIndex after we know the final burst count
                   const imageIndex = Math.max(0, bursts.length - 1);
                   let cumulativeDelay = 800; // Initial delay
                 
                   bursts.forEach((burst, index) => {
+                    const typingDelay = Math.min(800 + (burst.display.length / 10) * 200, 2500);
+                    const delayForThis = cumulativeDelay;
+                
                     setTimeout(() => {
                       const msgId = crypto.randomUUID();
                       const shouldHaveImage = index === imageIndex && imageUrl;
@@ -1555,10 +1564,10 @@ if (currentSuggestedQuestions.length > 0) {
                           startIdleTimerRef.current(60000);
                         }, 500);
                       }
-                    }, cumulativeDelay);
+                    }, delayForThis);
                   
-                    // 0.5s delay between messages
-                    cumulativeDelay += 500;
+                    // Next message delay based on text length
+                    cumulativeDelay += typingDelay;
                   });
                 
                   return;
