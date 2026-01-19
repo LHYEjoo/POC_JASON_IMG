@@ -558,12 +558,27 @@ export default function DigitalShadow() {
   const [toast, setToast] = React.useState<string>('');
   const [inputText, setInputText] = React.useState<string>('');
   const [showSettings, setShowSettings] = React.useState<boolean>(false);
-  const [showSuggestions, setShowSuggestions] = React.useState<boolean>(true);
+  const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
   const audioEnabledRef = React.useRef(audioEnabled);
   audioEnabledRef.current = audioEnabled;
   const languageRef = React.useRef(language);
   languageRef.current = language;
+
+  // Suggestions inactivity timer: show suggestions after 10s without send/mic/select
+  const suggestionsTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resetSuggestionsTimer = React.useCallback(() => {
+    if (suggestionsTimerRef.current) {
+      clearTimeout(suggestionsTimerRef.current);
+      suggestionsTimerRef.current = null;
+    }
+    // Hide suggestions immediately on interaction
+    setShowSuggestions(false);
+    // Show again after 10s of inactivity
+    suggestionsTimerRef.current = setTimeout(() => {
+      setShowSuggestions(true);
+    }, 10000);
+  }, []);
 
   // ---------- Conversation Storage ----------
   const conversationStorage = useConversationStorage(ctx, flags.ENABLE_SUPABASE_STORAGE);
@@ -1872,6 +1887,16 @@ if (currentSuggestedQuestions.length > 0) {
   const cancelIdleTimerRef = React.useRef(cancelIdleTimer);
   cancelIdleTimerRef.current = cancelIdleTimer;
 
+  // Start suggestions inactivity timer on mount and clean up on unmount
+  React.useEffect(() => {
+    resetSuggestionsTimer();
+    return () => {
+      if (suggestionsTimerRef.current) {
+        clearTimeout(suggestionsTimerRef.current);
+      }
+    };
+  }, [resetSuggestionsTimer]);
+
   // Precompute which messages should show avatars (last AI message in each sequence)
   // This avoids computing inside the map and reduces re-renders
   const showAvatarMap = React.useMemo(() => {
@@ -1887,6 +1912,46 @@ if (currentSuggestedQuestions.length > 0) {
     }
     return map;
   }, [ctx.messages]);
+
+  // Initial story messages: reveal the first two AI intro messages one by one
+  const [initialMessagesVisible, setInitialMessagesVisible] = React.useState<number>(1);
+  const shouldAnimateInitialMessages = React.useMemo(() => {
+    if (ctx.messages.length < 2) return false;
+    const firstTwoAreInitial =
+      ctx.messages[0]?.id === 'initial-1' &&
+      ctx.messages[1]?.id === 'initial-2';
+    const onlyInitialStoryMessages = ctx.messages.every((m) =>
+      m.role === 'ai' &&
+      (m.id === 'initial-1' || m.id === 'initial-2' || m.id === 'initial-3')
+    );
+    return firstTwoAreInitial && onlyInitialStoryMessages;
+  }, [ctx.messages]);
+
+  React.useEffect(() => {
+    if (!shouldAnimateInitialMessages) {
+      // When we're no longer in the pure initial-story state, always show all messages
+      if (initialMessagesVisible !== ctx.messages.length) {
+        setInitialMessagesVisible(ctx.messages.length);
+      }
+      return;
+    }
+
+    // Reveal the second intro message after a short delay
+    if (initialMessagesVisible < 2) {
+      const timer = setTimeout(() => {
+        setInitialMessagesVisible(2);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAnimateInitialMessages, ctx.messages.length, initialMessagesVisible]);
+
+  const messagesForRender = React.useMemo(() => {
+    if (shouldAnimateInitialMessages) {
+      const count = Math.min(initialMessagesVisible, ctx.messages.length);
+      return ctx.messages.slice(0, count);
+    }
+    return ctx.messages;
+  }, [ctx.messages, shouldAnimateInitialMessages, initialMessagesVisible]);
 
   // ---------- Render ----------
   return (
@@ -1923,7 +1988,7 @@ if (currentSuggestedQuestions.length > 0) {
                 </div>
               )}
 
-              {ctx.messages.map((m) => (
+              {messagesForRender.map((m) => (
                 <ChatBubble
                   key={m.id}
                   type={m.role}
@@ -1962,8 +2027,10 @@ if (currentSuggestedQuestions.length > 0) {
             onSubmit={(text) => {
               dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text });
               setInputText('');
+              resetSuggestionsTimer();
             }}
             onMicClick={async () => {
+              resetSuggestionsTimer();
               if (stt.status === 'idle' && ui === 'idle' && stt.isSupported) {
                 await audioPlayer.unlock();
                 dispatchRef.current?.({ type: 'MIC_TAP' });
@@ -2039,6 +2106,7 @@ if (currentSuggestedQuestions.length > 0) {
                   dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text: t });
                   // Vervang alleen deze ene vraag door een nieuwe uit de pool (zonder herhaling)
                   nextSuggestedQuestions(t);
+                  resetSuggestionsTimer();
                 }}
                 onClose={isMobile ? () => setShowSuggestions(false) : undefined}
               />
@@ -2054,8 +2122,10 @@ if (currentSuggestedQuestions.length > 0) {
             onSubmit={(text) => {
               dispatchRef.current?.({ type: 'ADD_USER', id: crypto.randomUUID(), text });
               setInputText('');
+              resetSuggestionsTimer();
             }}
             onMicClick={async () => {
+              resetSuggestionsTimer();
               if (stt.status === 'idle' && ui === 'idle' && stt.isSupported) {
                 await audioPlayer.unlock();
                 dispatchRef.current?.({ type: 'MIC_TAP' });
