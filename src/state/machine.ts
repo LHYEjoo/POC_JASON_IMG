@@ -1,4 +1,4 @@
-export type Msg = { id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream'; imageUrl?: string };
+export type Msg = { id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream'; imageUrl?: string; temperature?: number };
 
 export type UIState = 'idle' | 'recording' | 'ai_response_typing' | 'ai_response_playing';
 
@@ -15,10 +15,10 @@ export type Action =
   | { type: 'AI_BUFFER_FLUSH' }
   | { type: 'AI_CHUNK_READY'; text: string }
   | { type: 'AUDIO_ENQUEUE'; payload: AudioQueueItem }
-  | { type: 'ADD_AI_MESSAGE'; id: string; text: string; imageUrl?: string }
+  | { type: 'ADD_AI_MESSAGE'; id: string; text: string; imageUrl?: string; temperature?: number }
   | { type: 'AUDIO_START'; id: string }
   | { type: 'AI_DELTA'; text: string }
-  | { type: 'AI_FINAL'; id: string; text: string; audioUrl?: string }
+  | { type: 'AI_FINAL'; id: string; text: string; audioUrl?: string; temperature?: number }
   | { type: 'AUDIO_STARTED' }
   | { type: 'AUDIO_ENDED' }
   | { type: 'UPDATE_MESSAGE_IMAGE'; id: string; imageUrl: string }
@@ -26,7 +26,7 @@ export type Action =
   | { type: 'INACTIVITY_TIMEOUT' };
 
 export interface UIContext {
-  messages: Array<{ id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream'; imageUrl?: string }>;
+  messages: Array<{ id: string; role: 'user' | 'ai'; text: string; status: 'final' | 'stream'; imageUrl?: string; temperature?: number }>;
   composingAI: string;
   audioQueue: AudioQueueItem[];
   ui: UIState;
@@ -166,8 +166,16 @@ export function reducer(state: UIState, ctx: UIContext, action: Action): [UIStat
         role: 'ai' as const, 
         text: action.text, 
         status: 'final' as const,
-        imageUrl: (action as any).imageUrl
+        imageUrl: (action as any).imageUrl,
+        temperature: action.temperature
       };
+      // eslint-disable-next-line no-console
+      console.log('[STATE] ADD_AI_MESSAGE:', {
+        id: aiMsg.id,
+        textLength: aiMsg.text.length,
+        temperature: aiMsg.temperature,
+        hasTemperature: 'temperature' in action
+      });
       const next: UIContext = {
         ...ctx,
         messages: [...ctx.messages, aiMsg]
@@ -200,7 +208,8 @@ export function reducer(state: UIState, ctx: UIContext, action: Action): [UIStat
         id: action.id, 
         role: 'ai' as const, 
         text: finalText, 
-        status: 'final' as const 
+        status: 'final' as const,
+        temperature: (action as any).temperature
       };
       const next: UIContext = {
         ...ctx,

@@ -15,6 +15,7 @@ export interface Conversation {
     text: string;
     status: 'final' | 'stream';
     timestamp: string;
+    temperature?: number;
   }>;
   session_id?: string;
   ip_address?: string;
@@ -57,8 +58,15 @@ class SupabaseStorage {
           role: msg.role,
           text: msg.text,
           status: msg.status,
-          timestamp: msg.timestamp
+          timestamp: msg.timestamp,
+          temperature: msg.temperature ?? null
         }));
+
+        // eslint-disable-next-line no-console
+        console.log('[supabaseStorage] Saving messages batch:', {
+          count: messagesData.length,
+          temperatures: messagesData.map(m => ({ id: m.id, role: m.role, temp: m.temperature }))
+        });
 
         const { error: messagesError } = await supabase
           .from('messages')
@@ -129,7 +137,8 @@ class SupabaseStorage {
           role: msg.role,
           text: msg.text,
           status: msg.status,
-          timestamp: msg.timestamp
+          timestamp: msg.timestamp,
+          temperature: msg.temperature ?? undefined
         })),
         session_id: conversationData.session_id,
         ip_address: conversationData.ip_address
@@ -149,8 +158,17 @@ class SupabaseStorage {
         role: message.role,
         text: message.text,
         status: message.status,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        temperature: message.temperature ?? null
       };
+
+      // eslint-disable-next-line no-console
+      console.log('[supabaseStorage] Upserting message to Supabase:', {
+        id: messageData.id,
+        role: messageData.role,
+        temperature: messageData.temperature,
+        temperatureType: typeof messageData.temperature
+      });
 
       const { error } = await supabase
         .from('messages')

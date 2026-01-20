@@ -1,0 +1,82 @@
+https://www.reuters.com/article/world/on-trial-on-riot-charges-hong-kong-newlyweds-prepared-for-life-apart-idUSKCN24P0MN/
+
+On trial on riot charges, Hong Kong newlyweds prepared for life apart
+
+HONG KONG (Reuters) - For Valentine's Day this year, Henry Tong gave his wife, Elaine To, a photo book. It holds the memories of their life together: their first date six years ago, kissing in front of a pro-democracy "Lennon wall"; the tattooed bands on their ring fingers, symbolizing a bond not easily erased; and their wedding day last year, when he vowed to her, "Not even a nuclear explosion could break us apart."
+The book doesn't mention the 50 hours that Henry and Elaine spent in jail in July last year, just four days before their wedding. Arrested at a pro-democracy protest, the couple were kept in different cells at the police station, separated by a long corridor and a large wall.
+Not knowing if they'd get out in time for their wedding, the couple tried to stay together by shouting across the cells.
+"We couldn't see each other. But if we yelled loud enough, we could listen to each other's voices," Elaine said.
+Early this year, Henry, 39, spent more than a month putting together the photo book in secret during the couple's rare times apart. He wanted Elaine, 42, to have something to remind her of him in case they were separated again, this time for years.
+Nearly a year after they were first arrested, the newlyweds were tried on charges of rioting, an offense carrying a penalty of up to 10 years in jail. The couple spoke to Reuters in the weeks leading up to the court ruling in their case. On Friday, they learned their fate.
+Since June of last year, more than 9,000 people have been arrested during the protests, which saw millions of people take to the streets with five demands, including retracting the classification of protesters as "rioters" and full democracy in the Chinese-ruled territory. More than 650 have been accused of rioting, one of the most serious charges. Their cases delayed by the COVID-19 pandemic, the accused are finally facing verdicts just weeks after China dramatically intensified its crackdown by imposing new national security legislation on Hong Kong that includes life in prison for some political crimes.
+Beijing's move has exacerbated concerns among many Hong Kong residents over the loss of freedoms in the city, including freedom of speech and the press. Critics say the law marks the end of Hong Kong's "one country, two systems" governing model, which afforded the city a high degree of autonomy ever since its hand-over from British to Chinese rule in 1997. China says the new legislation targets only a minority of "troublemakers" in the city, and Hong Kong's chief executive, Carrie Lam, called opponents of the law "the enemy of the Hong Kong people."
+Lam has defended the crackdown on last year's protesters, who took to the streets to oppose a bill that would have allowed extradition of people from Hong Kong to the mainland. "I must urge everyone once again – don't break the law, especially young people," she said in May. "There is a heavy price for breaking the law."
+Much older than the teenagers who came to symbolize the demonstrations, Henry and Elaine insist they were merely providing first aid to those who were tear-gassed on that day of protests last July. The couple, who own a gym in Hong Kong's Sheung Wan neighborhood, pleaded not guilty. They say they never went anywhere near the front lines, and never acted violently or illegally.
+Their lawyer argued in court that there was no direct evidence proving they were on the street where the alleged riot happened; CCTV footage showed them in an alley nearby and leaving the area. The court testimony also showed that only umbrellas, protective gear, medical supplies and two walkie-talkies were seized in their arrest.
+The prosecution said in court that even though there was no evidence showing that the couple was present at the point where the rioting took place, they shared the goals of those participating in the rioting. Their gear and the fact they were running away from the police, the prosecution said, supported the accusation that they had been involved in rioting.
+The couple's lawyer countered that they were avoiding tear gas, not running away.
+Henry said he and Elaine "never imagined" they would be arrested. "We never thought we would need to find a lawyer, or who would take care of our dogs."
+Elaine cried sometimes when talking about the separation she felt was sure to come – and fretted over what would happen to the couple's three dogs, who are like children to them, a source of both worry and wonder. But she said she believed it was her responsibility to stand up for Hong Kong’s future.
+"When I look back at my life, what made me proud?" she said. "I really think that even though I was arrested, I don't regret standing up. I am scared of being jailed, but I don't regret it."
+GOING THROUGH FIRE AND WATER TOGETHER
+During the demonstrations, protesters gave Henry the nickname Fu Tong, which means "to go through water." Elaine was nicknamed Dou Fo, which means "to go through fire." Literally, the names mean they'll go through fire and water together.
+They were among the first to be charged with rioting during the protests last year, arrested with a 17-year-old named Natalie Lee. The couple also faced an additional charge of possessing a radio apparatus without a valid license.
+Henry and Elaine said they didn't know Natalie before the arrest. Police were firing rounds of tear gas at the time they found Natalie in an alley, having a hard time breathing and barely able to open her eyes, they said. After helping Natalie to rinse her eyes with saline water, the couple said they tried to leave the scene. The trio were arrested by riot police in front of a barbed-wire fence and were tried together. Natalie, who also pleaded not guilty, declined to comment when contacted by Reuters ahead of the court ruling.
+Their detention at the police station was one of the toughest moments in their relationship, the couple said. They've been inseparable since they started dating in 2014, when protesters paralyzed major roads of the financial hub for 79 days late that year demanding full democracy for the city.
+All Henry could think about was their wedding, just days away. "The scariest thing about the arrest was that I couldn't get married on time. The police officers kept telling us that there was no plan to grant us bail," he said. "The first thing I told my lawyer was to make sure we could be bailed out and get married."
+Once they secured bail and were finally out, they were overwhelmed by all the things they needed to handle – comforting their dogs; apologizing to their clients for canceling gym classes while they were being held; finding a suit for Henry to wear in court.
+Waking up the morning after their release, they were nervous about appearing in court for the first time. And then they saw the scene outside the courthouse.
+Even with a typhoon approaching the city and rain lashing down, hundreds of supporters had gathered outside Eastern Court, some of them covered only by plastic bags, to show solidarity.
+Many held placards that read, "There are no rioters, only tyranny," and kept chanting "Liberate Hong Kong, revolution of our time," until all 44 people who appeared in court that day were granted bail in the afternoon.
+Henry and Elaine didn't know all of the people who had gathered to support them, and many of the supporters didn't know them.
+"It had nothing to do with them, but they stayed put and waited for us under the tropical rainstorm," Henry said, wiping tears away. "The scene really overwhelmed us. We stopped feeling nervous by the time we entered the court."
+'I WILL CONTINUE TO LOVE YOU FOREVER'
+Four days later, Elaine wore her white wedding dress at a tiny marriage hall of the Cotton Tree Drive Marriage Registry in the Central district.
+They only expected four people, including the two witnesses, to come to their wedding ceremony. Henry didn't even invite his family, because the couple had received online threats that someone would gatecrash and spoil their wedding, and guests might be doxxed online.
+To their surprise, dozens of family members, friends and people they hadn't even met before showed up that day. Journalists also came and live-streamed their ceremony on social media as if it were a royal wedding, not of two people accused of a serious crime.
+"The general impression of Hong Kongers toward criminals is very bad, and rioting is a very serious charge, but they still came. It really showcases the love of Hong Kongers," Henry said. "I am very touched and proud."
+When the wedding was about to begin, an older stranger suddenly opened the door.
+Just as Henry and Elaine thought he was there to interfere with the wedding, he instead gave them traditional red envelopes of money as a gift, saying, "Congratulations. Congratulations."
+Rather than exchange rings, they tattooed a pair of boxing gloves with Mexican-style, ornamental bride-and-groom skulls on their toned, muscled arms linked by two strings to the tattooed bands on their left ring fingers. It symbolised how they came across each other through a Thai boxing class and fell in love until death do them part.
+"If you want to wash away the tattoo, you need to go through a lot of pain; it's very similar to the meaning of marriage," Henry said.
+After signing the papers, each gave a short speech as they held each other's hands tightly.
+"Although there are some obstacles in the road, I have finally become Mrs. Tong. I will go through the upheaval with you," Elaine vowed during the ceremony as she wept.
+"It's not easy to find someone in life with the same ideals, values, and willing to go through ups and downs with you in the time of chaos... I will continue to love you forever," Henry said before they exchanged a kiss.
+Just a week after the ceremony, street posters with their wedding photo and the words "trash teens" – a derogatory term hurled at pro-democracy protesters – were pasted near their gym and on lamp posts from Sheung Wan more than a mile to the Admiralty district. But neither of them took it seriously, they say. In fact, Elaine laughs about the teen description: "That means we are still young."
+'YOU ARE NEVER ALONE'
+Their trial was scheduled to start in March but was postponed because of the pandemic. The 20 days the court took to hear their case exceeded the original estimate by 10 days.
+Sharron Fast is a lecturer in media law at the University of Hong Kong and once taught criminal law at the law school there. She says the city's riot law is dated and hasn't been reformed since 1976.
+"The elements of the offense are that as soon as three or more people in an unlawful demonstration commit certain acts, that is to say a 'breach of the peace,' they are said to be riotously assembled," Fast said. "Everyone present is deemed to be a party to the riot, regardless of the role he or she played."
+She said that the large number of protest-related cases means that achieving justice may be difficult. "It is hard to imagine that all these individuals will receive adequate due process in a sense that the trials are very time-consuming on a case-by-case basis," she said.
+Carrie Lam's office didn't respond to questions from Reuters about the judicial process.
+The Hong Kong Department of Justice told Reuters it would study the case to determine if any "follow-up action is called for".
+Henry sometimes blamed himself for the couple's legal predicament.
+"I am really thankful to her. It was never her idea. I am more stubborn," he said. "She didn't blame me for getting us into the current situation."
+The psychological pressure of the past year has left Henry plagued by nightmares. On the evening before the court ruling, he was gloomy. "Right now it's like watching my own funeral, watching people watching my death," he said. "Except I am not dead. It's very hard."
+The court case has also hurt the couple's business. They say they've lost two-thirds of their income because of political differences with their clients.
+"Most of our remaining clients are supportive of us. They told us: 'It's OK. Although you were charged, we will still come,'" Elaine said.
+Whenever they felt defeated, they took out the wedding gifts and cards they received and went through the messages inscribed on them.
+One of their favorites was a drawing that three children did of Elaine in a wedding gown and Henry in a wedding suit with a yellow helmet, the color denoting support for the protest movement. They've hung it up at the entrance of their gym.
+"Thank you for fighting for justice for the young generation, you are never alone, you have us who will stand with you. Happy Marriage! Proud of Mr. and Mrs. Tong!" the children wrote.
+"They remind us that we should keep going," Henry said.
+Referring to the new security law imposed by Beijing, he added: "Even though Hong Kong doesn't have a future anymore, I am still hopeful. We are not alone."
+In the days leading up to the verdict, the couple counted down their time at the gym, where they spent most of their days building their dream together.
+They asked a friend to take over the company. They packed their boxing gloves and two large plastic sheets with the company logo, "Wild Gym," into bags.
+"It's not the place that made it special, but the time we spent together that made it special," Henry said.
+They also treasured moments like running and walking their dogs, whom they adopted three years ago: a poodle named Ah Mui (Sister) and two mongrels named Fa Fa (Flower) and Cho Cho (Grass).
+Like worried parents, they mentioned their dogs again and again when talking about the specter of imprisonment, worrying the pets would stop eating without them, like when the couple were detained at the police station.
+They made plans for the dogs. Elaine's mother, who has been supportive of them during their legal troubles, would look after Ah Mui, because the poodle has skin allergies that need to be taken care of.
+Fa Fa and Cho Cho are both large dogs, and the couple worried that Elaine's mother might get injured when she walked them. So they planned to send them to their dog trainer's pet hotel where they would stay with other dogs to ease their separation anxiety.
+Elaine tattooed all three pets on her right arm in case she was imprisoned, saying, "At least I can see my dogs."
+Elaine's mother, Ann, 60, said she sometimes wished she could go back in time and change everything. She noticed that they became quiet at home as the verdict approached, sometimes sitting in dead silence, but she didn't dare ask much. She broke down, sobbing, when she talked about her daughter and son-in-law.
+"Mommy really supports both of you," she said she told them. "No matter what happens, I will support both of you and take care of the dogs."
+Henry hoped the couple could remain strong.
+"I hope that no matter how bad the situation will be, we won't lose faith. I hope our love can continue in this chaotic time," he said. "These words are not just for our marriage but also for Hong Kong."
+On Friday, about 100 people gathered outside the court to support the couple ahead of the ruling in their case. Inside, Elaine cried while Henry sat silently, staring at the wall.
+In an instant, all the couple's dread about a life apart behind bars melted away. As they stood in the courthouse, the judge announced they had been acquitted of the rioting charge. So had Natalie Lee. The couple were found guilty of the lesser offense of possessing a wireless radio without a permit and fined $1,300 each. They were free to go.
+Elaine and Henry wept and embraced. Then Elaine hugged her mother, apologizing for the worry she had caused her.
+"They are good people," said Ann. "They did nothing wrong."
+Henry said they would head home immediately to take care of the dogs, while Elaine said they would start to unpack their gym equipment and get back to work.
+In the days before the verdict and sentencing, the couple had paged through the photo book that Henry made for Elaine.
+On the last page, he had written, "happily ever after," like every fairy tale.
+Reporting by Jessie Pang in Hong Kong. Edited by Kari Howard and Peter Hirschberg.

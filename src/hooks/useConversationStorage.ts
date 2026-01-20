@@ -15,6 +15,20 @@ export function useConversationStorage(ctx: UIContext, enabled: boolean = true) 
         // Only save final messages (not interim/streaming)
         if (lastMessage.status === 'final') {
           try {
+            // Get temperature from message (only for AI messages)
+            const messageTemperature = lastMessage.role === 'ai' 
+              ? (lastMessage as any).temperature ?? null 
+              : null;
+            
+            // eslint-disable-next-line no-console
+            console.log('[useConversationStorage] Saving message:', {
+              id: lastMessage.id,
+              role: lastMessage.role,
+              hasTemperature: 'temperature' in lastMessage,
+              temperature: messageTemperature,
+              messageKeys: Object.keys(lastMessage)
+            });
+            
             // Get current conversation or create new one
             const currentConversation = await supabaseStorage.getCurrentConversation();
             if (currentConversation) {
@@ -22,7 +36,8 @@ export function useConversationStorage(ctx: UIContext, enabled: boolean = true) 
                 id: lastMessage.id,
                 role: lastMessage.role,
                 text: lastMessage.text,
-                status: lastMessage.status
+                status: lastMessage.status,
+                temperature: messageTemperature
               });
             } else {
               // Create new conversation and save message
@@ -31,7 +46,8 @@ export function useConversationStorage(ctx: UIContext, enabled: boolean = true) 
                 id: lastMessage.id,
                 role: lastMessage.role,
                 text: lastMessage.text,
-                status: lastMessage.status
+                status: lastMessage.status,
+                temperature: messageTemperature
               });
             }
           } catch (error) {

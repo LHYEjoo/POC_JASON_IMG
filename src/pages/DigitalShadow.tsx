@@ -1041,11 +1041,21 @@ if (currentSuggestedQuestions.length > 0) {
                           const msgId = crypto.randomUUID();
                           const shouldHaveImage = index === imageIndex && imageUrl;
                           
+                          const currentTemp = temperatureRef.current;
+                          // eslint-disable-next-line no-console
+                          console.log('[DigitalShadow] Dispatching ADD_AI_MESSAGE with temperature:', {
+                            msgId,
+                            temperature: currentTemp,
+                            temperatureType: typeof currentTemp,
+                            temperatureRefValue: temperatureRef.current
+                          });
+                          
                           // Add message without image first (remove trailing periods for display)
                           dispatchRef.current?.({ 
                             type: 'ADD_AI_MESSAGE', 
                             id: msgId, 
-                            text: displayText
+                            text: displayText,
+                            temperature: currentTemp
                           });
                           
                           // If this message should have the image, load it asynchronously
@@ -1062,6 +1072,7 @@ if (currentSuggestedQuestions.length > 0) {
                                   type: 'ADD_AI_MESSAGE',
                                   id: citationsId,
                                   text: citationsText,
+                                  temperature: temperatureRef.current
                                 });
                             
                                 setTimeout(() => {
@@ -1173,11 +1184,21 @@ if (currentSuggestedQuestions.length > 0) {
                           const msgId = crypto.randomUUID();
                           const shouldHaveImage = index === imageIndex && imageUrl;
                           
+                          const currentTemp = temperatureRef.current;
+                          // eslint-disable-next-line no-console
+                          console.log('[DigitalShadow] Dispatching ADD_AI_MESSAGE with temperature:', {
+                            msgId,
+                            temperature: currentTemp,
+                            temperatureType: typeof currentTemp,
+                            temperatureRefValue: temperatureRef.current
+                          });
+                          
                           // Add message without image first (remove trailing periods for display)
                           dispatchRef.current?.({ 
                             type: 'ADD_AI_MESSAGE', 
                             id: msgId, 
-                            text: displayText
+                            text: displayText,
+                            temperature: currentTemp
                           });
                           
                           // If this message should have the image, load it asynchronously
@@ -1194,6 +1215,7 @@ if (currentSuggestedQuestions.length > 0) {
                                   type: 'ADD_AI_MESSAGE',
                                   id: citationsId,
                                   text: citationsText,
+                                  temperature: temperatureRef.current
                                 });
                             
                                 setTimeout(() => {
@@ -1440,7 +1462,12 @@ if (currentSuggestedQuestions.length > 0) {
                       
                       setTimeout(() => {
                         const msgId = crypto.randomUUID();
-                        dispatchRef.current?.({ type: 'ADD_AI_MESSAGE', id: msgId, text: fallbackDisplay });
+                        dispatchRef.current?.({ 
+                          type: 'ADD_AI_MESSAGE', 
+                          id: msgId, 
+                          text: fallbackDisplay,
+                          temperature: temperatureRef.current
+                        });
                 
                         // Set UI back to idle after message is shown
                         setTimeout(() => {
@@ -1612,7 +1639,8 @@ if (currentSuggestedQuestions.length > 0) {
                       dispatchRef.current?.({ 
                         type: 'ADD_AI_MESSAGE', 
                         id: msgId, 
-                        text: burst.display
+                        text: burst.display,
+                        temperature: temperatureRef.current
                       });
                       
                       // If this message should have the image, load it asynchronously

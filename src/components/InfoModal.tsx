@@ -136,13 +136,28 @@ export function InfoModal({ isOpen, onClose, language, sources }: Props) {
                 <span className="font-medium">
                   {language === 'nl' ? 'Bron 3:' : 'Source 3:'}
                 </span>{' '}
+                <a
+                  href="https://www.reuters.com/article/world/on-trial-on-riot-charges-hong-kong-newlyweds-prepared-for-life-apart-idUSKCN24P0MN/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#00ABFE] hover:underline"
+                >
+                  {language === 'nl'
+                    ? 'On trial on riot charges, Hong Kong newlyweds prepared for life apart || Reuters (Artikel)'
+                    : 'On trial on riot charges, Hong Kong newlyweds prepared for life apart || Reuters (Article)'}
+                </a>
+              </li>
+              <li>
+                <span className="font-medium">
+                  {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
+                </span>{' '}
                 {language === 'nl'
                   ? 'Video interview met Henry (niet toegankelijk voor gebruikers)'
                   : 'Video interview with Henry (not accessible for users)'}
               </li>
               <li>
                 <span className="font-medium">
-                  {language === 'nl' ? 'Bron 4:' : 'Source 4:'}
+                  {language === 'nl' ? 'Bron 5:' : 'Source 5:'}
                 </span>{' '}
                 {language === 'nl'
                   ? 'Interview met Henry (niet toegankelijk voor gebruikers)'

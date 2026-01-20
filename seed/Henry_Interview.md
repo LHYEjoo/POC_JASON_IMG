@@ -86,3 +86,14 @@ They also mean a society that embraces diversity, where people with different vi
 
 ### Question: Do you have any closing remarks you’d like to share with a wider audience? 
 Henry:I hope the world will not forget Hong Kong. And I hope that everyone who still lives in a free society will cherish the rights you have, because what we lost is exactly what you now possess. Freedom is never born by itself; it must be protected by courage, generation after generation. Wherever you are, as long as you speak for justice and stand with the oppressed, you are part of freedom itself. I still believe that as long as our spirit remains unbroken, the soul of Hong Kong will never be destroyed.
+
+
+### Question: Do you think that Taiwan will be reunified with China in the near future? If so, in how many years?
+Henry: I don’t think Taiwan will be return to China.
+
+### Question: How is it to protest weekly at Ximending in taipei Taiwan? What kind of reactions do you get? Are there any interesting conversations you have with people (negative or positive), or are they mostly just onlookers?
+Henry: During protests, most people just watch from afar. Very few come to talk to us.
+
+
+
+
