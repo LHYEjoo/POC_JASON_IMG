@@ -1965,6 +1965,7 @@ if (currentSuggestedQuestions.length > 0) {
   // Typing indicator: show 1 second after each previous message when Henry is about to generate an answer
   const [showTypingIndicator, setShowTypingIndicator] = React.useState(false);
   const prevMessageCountForTypingRef = React.useRef(ctx.messages.length);
+  const prevUiForTypingRef = React.useRef<UIState | null>(null);
 
   // Precompute which messages should show avatars (last AI message in each sequence)
   // This avoids computing inside the map and reduces re-renders
@@ -2033,12 +2034,17 @@ if (currentSuggestedQuestions.length > 0) {
     // 1. UI is in 'ai_response_typing' state (Henry is about to generate an answer)
     // 2. OR we're animating initial messages and there are more to show
     const shouldShow = ui === 'ai_response_typing' || 
-                      (shouldAnimateInitialMessages && initialMessagesVisible < Math.min(ctx.messages.length, 3));
+                       (shouldAnimateInitialMessages && initialMessagesVisible < Math.min(ctx.messages.length, 3));
     
     if (shouldShow) {
-      // If a message was just added, wait 1 second before showing typing indicator
-      // Otherwise, show immediately (for initial state or when UI changes to ai_response_typing)
-      const delay = messageCountChanged ? 1000 : 0;
+      const wasTyping = prevUiForTypingRef.current === 'ai_response_typing';
+      const isTyping = ui === 'ai_response_typing';
+
+      // Delay when:
+      // - we just entered the typing state for a new answer, or
+      // - a new message was added (simulate human pause between messages)
+      const shouldDelay = (!wasTyping && isTyping) || messageCountChanged;
+      const delay = shouldDelay ? 1000 : 0;
       
       const timer = setTimeout(() => {
         setShowTypingIndicator(true);
@@ -2046,12 +2052,13 @@ if (currentSuggestedQuestions.length > 0) {
       
       return () => {
         clearTimeout(timer);
-        setShowTypingIndicator(false);
       };
     } else {
       setShowTypingIndicator(false);
     }
-  }, [ui, ctx.messages.length, shouldAnimateInitialMessages, initialMessagesVisible]);
+    
+    prevUiForTypingRef.current = ui;
+  }, [ui, ctx.messages.length, shouldAnimateInitialMessages, initialMessagesVisible, showTypingIndicator]);
 
   const messagesForRender = React.useMemo(() => {
     if (shouldAnimateInitialMessages) {

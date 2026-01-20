@@ -274,7 +274,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 <span>{language === 'nl' ? 'Deterministisch' : 'Deterministic'}</span>
                 <span>{language === 'nl' ? 'Creatief' : 'Creative'}</span>
               </div>
-              <p className={cn('text-sm mt-2', getTemperatureTextClass())}>
+              <p className={cn('text-xs italic mt-2', getTemperatureTextClass())}>
                 {getTemperatureDescription()}
               </p>
             </div>
