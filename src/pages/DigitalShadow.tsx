@@ -1753,6 +1753,20 @@ if (currentSuggestedQuestions.length > 0) {
     onAddMessage: (id: string, text: string, imageUrl?: string) => {
       const ctxNow = ctxRef.current;
       const existing = ctxNow.messages.find((m) => m.id === id);
+      // Get current temperature from localStorage for this message
+      const currentTemp = typeof window !== 'undefined'
+        ? (() => {
+            const stored = window.localStorage.getItem('Henry-temperature');
+            if (stored != null) {
+              const parsed = parseFloat(stored);
+              if (!Number.isNaN(parsed)) {
+                return parsed;
+              }
+            }
+            return null;
+          })()
+        : null;
+      
       // eslint-disable-next-line no-console
       console.log('[AudioPlayer][onAddMessage]', {
         id,
@@ -1760,6 +1774,7 @@ if (currentSuggestedQuestions.length > 0) {
         imageUrl,
         hasExisting: !!existing,
         messageCount: ctxNow.messages.length,
+        temperature: currentTemp,
       });
       // Append AI message directly using functional state update so multiple bursts all show up
       // Add message without image first, then load image asynchronously if provided
@@ -1772,6 +1787,7 @@ if (currentSuggestedQuestions.length > 0) {
           role: 'ai' as const,
           text,
           status: 'final' as const,
+          temperature: currentTemp ?? undefined,
           // Don't include imageUrl initially - will be added when loaded
         };
         return {
