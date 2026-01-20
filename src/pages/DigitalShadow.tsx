@@ -553,9 +553,9 @@ export default function DigitalShadow() {
   const [showSettings, setShowSettings] = React.useState<boolean>(false);
   const [showInfo, setShowInfo] = React.useState<boolean>(false);
   const [showIntro, setShowIntro] = React.useState<boolean>(() => {
-    // Show intro on first visit (check localStorage)
+    // Show intro on every load until the user explicitly opts out
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-    return !hasSeenIntro;
+    return hasSeenIntro !== 'true';
   });
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(false);
   const [audioEnabled, setAudioEnabled] = React.useState<boolean>(true);
@@ -2339,9 +2339,11 @@ if (currentSuggestedQuestions.length > 0) {
       {/* Intro Modal */}
       <IntroModal
         isOpen={showIntro}
-        onClose={() => {
+        onClose={(neverShowAgain?: boolean) => {
           setShowIntro(false);
-          localStorage.setItem('hasSeenIntro', 'true');
+          if (neverShowAgain) {
+            localStorage.setItem('hasSeenIntro', 'true');
+          }
         }}
         language={language}
       />
