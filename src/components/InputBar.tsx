@@ -99,10 +99,12 @@ export default function InputBar({
               aria-label={recordingActive ? 'Stop opname' : 'Start opname'}
               aria-pressed={recordingActive}
               className={cn(
-                'absolute right-2 top-1/2 -translate-y-1/2',
-                'h-8 w-8 sm:h-9 sm:w-9 rounded-full',
-                'flex items-center justify-center shrink-0',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
+              'absolute right-2 top-1/2 -translate-y-1/2',
+              'h-8 w-8 sm:h-9 sm:w-9 rounded-full',
+              'flex items-center justify-center shrink-0',
+              'transition-all duration-200 ease-out',
+              'hover:scale-110 active:scale-95',
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
                 recordingActive
                   ? 'bg-accent animate-pulse'
                   : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-600'

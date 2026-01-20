@@ -26,6 +26,36 @@ interface Props {
 export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, language, onLanguageChange, onReset, sources, darkMode = false, onDarkModeToggle, temperature = 0, onTemperatureChange }: Props) {
   const modalRef = React.useRef<HTMLDivElement>(null);
 
+  const getTemperatureDescription = () => {
+    if (language === 'nl') {
+      if (temperature <= 0.3) {
+        return 'Temperatuur 0–0,3: Henry geeft zeer consistente en voorspelbare antwoorden. Hij kiest vooral de meest waarschijnlijke formulering en vermijdt variatie. Dit is geschikt voor feitelijke, journalistieke of veiligheidskritische output.';
+      }
+      if (temperature <= 0.6) {
+        return 'Temperatuur 0,4–0,6: Henry balanceert consistentie met natuurlijke variatie. Zijn antwoorden voelen conversatieel aan maar blijven gecontroleerd en betrouwbaar. Dit werkt goed voor begeleide storytelling of interviews.';
+      }
+      return 'Temperatuur 0,7–1,0: Henry geeft meer gevarieerde en creatieve antwoorden. Hij verkent minder waarschijnlijke woordkeuzes, wat de expressiviteit verhoogt maar ook de inconsistentie. Dit is vooral nuttig voor ideeënvorming of creatieve verkenning, niet voor feitelijke nauwkeurigheid.';
+    }
+
+    if (temperature <= 0.3) {
+      return 'Temperature 0–0.3: Henry gives highly consistent and predictable answers. He prioritizes the most likely wording and avoids variation. This is suitable for factual, journalistic, or safety-critical output.';
+    }
+    if (temperature <= 0.6) {
+      return 'Temperature 0.4–0.6: Henry balances consistency with natural variation. His responses feel conversational while remaining controlled and reliable. This works well for guided storytelling or interviews.';
+    }
+    return 'Temperature 0.7–1.0: Henry produces more varied and creative responses. He explores less likely word choices, which increases expressiveness but also inconsistency. This is mainly useful for ideation or creative exploration, not factual accuracy.';
+  };
+
+  const getTemperatureTextClass = () => {
+    if (temperature >= 0.7) {
+      return 'text-red-600';
+    }
+    if (temperature >= 0.4) {
+      return 'text-orange-500';
+    }
+    return 'text-gray-600';
+  };
+
   // Close on escape key
   React.useEffect(() => {
     if (!isOpen) return;
@@ -214,13 +244,18 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
           {onTemperatureChange && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="temperature-slider" className="text-lg font-medium text-gray-900 dark:text-white">
+                <label htmlFor="temperature-slider" className="text-lg font-medium text-gray-900">
                   {language === 'nl' ? 'Temperatuur' : 'Temperature'}
                 </label>
                 <span className="text-sm font-mono text-gray-600 dark:text-gray-400">
                   {temperature.toFixed(1)}
                 </span>
               </div>
+              <p className="text-sm text-gray-600 mb-3">
+                {language === 'nl'
+                  ? 'De temperatuur van Henry bepaalt hoe willekeurig of creatief zijn antwoorden zijn. Het beïnvloedt direct hoe hij het volgende woord uit de waarschijnlijkheidsverdeling kiest.'
+                  : "Henry's temperature controls how random or creative his outputs are. It directly affects how he selects the next word from the probability distribution."}
+              </p>
               <input
                 type="range"
                 id="temperature-slider"
@@ -228,12 +263,7 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 max="1"
                 step="0.1"
                 value={temperature}
-                onChange={(e) => {
-                  const newValue = parseFloat(e.target.value);
-                  // eslint-disable-next-line no-console
-                  console.log('🔥🔥🔥 SLIDER CHANGED:', newValue, 'old value:', temperature);
-                  onTemperatureChange(newValue);
-                }}
+                onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
                 className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#00ABFE]"
                 style={{
                   background: `linear-gradient(to right, #00ABFE 0%, #00ABFE ${temperature * 100}%, #e5e7eb ${temperature * 100}%, #e5e7eb 100%)`
@@ -244,10 +274,8 @@ export function SettingsModal({ isOpen, onClose, audioEnabled, onAudioToggle, la
                 <span>{language === 'nl' ? 'Deterministisch' : 'Deterministic'}</span>
                 <span>{language === 'nl' ? 'Creatief' : 'Creative'}</span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                {language === 'nl'
-                  ? 'Lager = meer consistent en voorspelbaar, Hoger = meer creatief en gevarieerd'
-                  : 'Lower = more consistent and predictable, Higher = more creative and varied'}
+              <p className={cn('text-sm mt-2', getTemperatureTextClass())}>
+                {getTemperatureDescription()}
               </p>
             </div>
           )}
