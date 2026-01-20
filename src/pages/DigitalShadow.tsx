@@ -346,45 +346,11 @@ function splitIntoBursts(text: string, maxBursts = 3): BurstPair[] {
   
   // eslint-disable-next-line no-console
   console.log('[splitIntoBursts] After punctuation split:', sentences.length, 'sentences:', sentences);
-  
-  // If no sentence boundaries found (no periods/question marks/exclamation marks), try other methods
-  if (sentences.length === 1) {
-    const singleSentence = sentences[0];
-    
-    // Try splitting by commas if it's a long sentence
-    if (singleSentence.length > 100) {
-      const commaSplit = singleSentence.split(/,\s+/).map(s => s.trim()).filter(Boolean);
-      if (commaSplit.length > 1) {
-        // Reconstruct with commas
-        sentences = [];
-        for (let i = 0; i < commaSplit.length; i++) {
-          if (i < commaSplit.length - 1) {
-            sentences.push(commaSplit[i] + ',');
-          } else {
-            sentences.push(commaSplit[i]);
-          }
-        }
-        // eslint-disable-next-line no-console
-        console.log('[splitIntoBursts] Using comma split:', sentences);
-      } else {
-        // If still one sentence, try splitting by length (roughly equal chunks)
-        const chunkSize = Math.ceil(singleSentence.length / maxBursts);
-        const lengthSplit: string[] = [];
-        for (let i = 0; i < singleSentence.length; i += chunkSize) {
-          const chunk = singleSentence.slice(i, i + chunkSize).trim();
-          if (chunk.length > 0) {
-            lengthSplit.push(chunk);
-          }
-        }
-        if (lengthSplit.length > 1) {
-          sentences = lengthSplit;
-          // eslint-disable-next-line no-console
-          console.log('[splitIntoBursts] Using length-based split:', sentences);
-        }
-      }
-    }
-  }
-  
+
+  // Belangrijk: we splitsen ALLEEN op echte zinsafsluiters (. ! ?)
+  // Geen extra splits op komma's of lengte, zodat antwoorden niet kunstmatig worden afgebroken.
+  // Als er geen . ! ? in de tekst zitten, behandelen we alles als één zin.
+
   // Create pairs: original (with punctuation) for TTS, cleaned (without trailing periods) for display
   const sentencePairs: BurstPair[] = sentences.map(s => ({
     tts: s, // Keep original with punctuation for TTS
