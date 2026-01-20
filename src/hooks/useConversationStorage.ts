@@ -22,8 +22,19 @@ export function useConversationStorage(ctx: UIContext, enabled: boolean = true) 
               const stored = typeof window !== 'undefined'
                 ? window.localStorage.getItem('Henry-temperature')
                 : null;
+              // eslint-disable-next-line no-console
+              console.log('[useConversationStorage] Reading temperature from localStorage:', {
+                stored,
+                storedType: typeof stored,
+                isNull: stored === null,
+              });
               if (stored != null) {
                 const parsed = parseFloat(stored);
+                // eslint-disable-next-line no-console
+                console.log('[useConversationStorage] Parsed temperature:', {
+                  parsed,
+                  isNaN: Number.isNaN(parsed),
+                });
                 if (!Number.isNaN(parsed)) {
                   messageTemperature = parsed;
                 }
@@ -35,6 +46,8 @@ export function useConversationStorage(ctx: UIContext, enabled: boolean = true) 
               id: lastMessage.id,
               role: lastMessage.role,
               temperature: messageTemperature,
+              localStorageValue: typeof window !== 'undefined' ? window.localStorage.getItem('Henry-temperature') : 'N/A',
+              isAI: lastMessage.role === 'ai',
             });
             
             // Get current conversation or create new one
