@@ -90,23 +90,23 @@ export function IntroModal({ isOpen, onClose, language }: Props) {
             <p className="text-base text-gray-700 leading-relaxed mb-4">
               {language === 'nl' ? (
                 <>
-                 Dit project bij VPRO Medialab onderzoekt hoe AI kan helpen om verhalen van mensen die niet veilig herkenbaar kunnen spreken toch geloofwaardig en invoelbaar te vertellen. De meerwaarde zit in een digital shadow: een AI-gestuurde stem en representatie die anonimiteit combineert met emotionele impact en transparantie. In plaats van een statisch verhaal kunnen gebruikers in gesprek gaan en context verdiepen. Op dit moment is er een werkend proof-of-concept in de vorm van een  applicatie, onderbouwd met onderzoek naar AI-stemmen, gebruikerservaring en ethische kaders, waarmee VPRO Medialab de journalistieke haalbaarheid kan toetsen.
+                 Dit project bij VPRO Medialab onderzoekt hoe AI kan helpen om verhalen van mensen die niet veilig herkenbaar kunnen spreken toch geloofwaardig en invoelbaar te vertellen. De meerwaarde zit in een digital shadow: een AI-gestuurde stem en representatie die anonimiteit combineert met emotionele impact en transparantie. In plaats van een statisch verhaal kunnen gebruikers in gesprek gaan en context verdiepen. <br></br> Op dit moment is er een werkend proof-of-concept in de vorm van een  applicatie, onderbouwd met onderzoek naar AI-stemmen, gebruikerservaring en ethische kaders, waarmee VPRO Medialab de journalistieke haalbaarheid kan toetsen.
                 </>
               ) : (
                 <>
-                  This project at VPRO Medialab explores how AI can be used to tell the stories of people who cannot safely speak in public in a credible and emotionally engaging way. Its value lies in the concept of a digital shadow: an AI-driven voice and representation that combines anonymity with empathy and transparency. Instead of a static story, users can engage in an interactive conversation and explore deeper context. At present, the project exists as a working proof of concept in the form of an application, supported by research into AI voices, user experience, and ethical frameworks, allowing VPRO Medialab to assess its journalistic viability.
+                  This project at VPRO Medialab explores how AI can be used to tell the stories of people who cannot safely speak in public in a credible and emotionally engaging way. Its value lies in the concept of a digital shadow: an AI-driven voice and representation that combines anonymity with empathy and transparency. Instead of a static story, users can engage in an interactive conversation and explore deeper context. <br></br> At present, the project exists as a working proof of concept in the form of an application, supported by research into AI voices, user experience, and ethical frameworks, allowing VPRO Medialab to assess its journalistic viability.
                 </>
               )}
             </p>
             <p className="text-base text-gray-700 leading-relaxed">
               {language === 'nl' ? (
                 <>
-                  <strong>Let op:</strong> Dit is een experimenteel prototype in ontwikkeling. De functionaliteit en antwoorden kunnen variëren en zijn niet definitief.
+                  <i><strong>Let op:</strong> Dit is een experimenteel prototype in ontwikkeling. De functionaliteit en antwoorden kunnen variëren en zijn niet definitief.</i>
                 </>
               ) : (
                 <>
-                  <strong>Note:</strong> This is an experimental prototype in development. Functionality and responses may vary and are not final.
-                </>
+                  <i><strong>Note:</strong> This is an experimental prototype in development. Functionality and responses may vary and are not final.</i>
+                </> 
               )}
             </p>
           </section>
@@ -127,8 +127,8 @@ export function IntroModal({ isOpen, onClose, language }: Props) {
               />
             </div>
             {/* "Don't show again" + Continue button */}
-            <div className="mt-6 flex flex-col items-center gap-4">
-              <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+            <div className="mt-6 flex flex-col items-left gap-4">
+              <label className="inline-flex items-left gap-2 text-sm text-gray-700 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
