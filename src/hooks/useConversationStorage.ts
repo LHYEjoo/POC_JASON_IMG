@@ -15,18 +15,26 @@ export function useConversationStorage(ctx: UIContext, enabled: boolean = true) 
         // Only save final messages (not interim/streaming)
         if (lastMessage.status === 'final') {
           try {
-            // Get temperature from message (only for AI messages)
-            const messageTemperature = lastMessage.role === 'ai' 
-              ? (lastMessage as any).temperature ?? null 
-              : null;
-            
+            // Bepaal temperatuur op het moment van opslaan, op basis van localStorage
+            // zodat we niet afhankelijk zijn van extra velden in de state.
+            let messageTemperature: number | null = null;
+            if (lastMessage.role === 'ai') {
+              const stored = typeof window !== 'undefined'
+                ? window.localStorage.getItem('Henry-temperature')
+                : null;
+              if (stored != null) {
+                const parsed = parseFloat(stored);
+                if (!Number.isNaN(parsed)) {
+                  messageTemperature = parsed;
+                }
+              }
+            }
+
             // eslint-disable-next-line no-console
             console.log('[useConversationStorage] Saving message:', {
               id: lastMessage.id,
               role: lastMessage.role,
-              hasTemperature: 'temperature' in lastMessage,
               temperature: messageTemperature,
-              messageKeys: Object.keys(lastMessage)
             });
             
             // Get current conversation or create new one
